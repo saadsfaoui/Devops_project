@@ -1,0 +1,14 @@
+.column{display:flex;flex-direction:column;gap:24px}
+.card{background:#ffffff;padding:20px;border-radius:12px;color:#000;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+.card h2{margin:0;font-size:22px}
+.subtitle{color:var(--muted);margin-bottom:8px}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;font-size:14px;color:#111}
+.air-quality{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin-top:12px;font-size:14px;color:#111}
+.ce-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.event{display:flex;gap:12px;margin-bottom:12px}
+.event-img{width:80px;height:60px;background:#e6e6e6;border-radius:8px}
+.artists{display:flex;gap:12px;margin-bottom:12px}
+.artist{width:60px;height:60px;background:#efefef;border-radius:50%}
+.track{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.avatar{width:40px;height:40px;background:#e6e6e6;border-radius:8px}
+.track-title{margin:0;font-size:14px;color:#111}

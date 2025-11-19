@@ -1,0 +1,72 @@
+<div class="overlay" *ngIf="isOpen" (click)="onClose()"></div>
+<div class="panel" *ngIf="isOpen">
+  <button class="close-btn" (click)="onClose()">✕</button>
+
+  <!-- HEADER CARD -->
+  <div class="card-header" [style.background-image]="'url(' + location.imageUrl + ')'">
+    <a class="compare-btn" [routerLink]="['/comparateur']" [queryParams]="{city: location.name}" title="Comparer">
+      ↔
+    </a>
+    <div class="city-title">{{ location.name }}</div>
+    <div class="city-subtitle">{{ location.country }} · {{ location.date }} · {{ location.time }}</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div 
+      *ngFor="let tab of tabs" 
+      class="tab"
+      [class.active]="activeTab === tab.value"
+      (click)="onTabClick(tab.value)">
+      <span class="tab-icon">{{ tab.icon }}</span>
+      <span class="tab-label">{{ tab.label }}</span>
+    </div>
+  </div>
+
+  <!-- CONTENT SECTIONS -->
+  <div class="content">
+    <!-- Bike Section -->
+    <div *ngIf="activeTab === 'bike'" class="section">
+      <div class="bike-section">
+        <div class="bike-icon">🚲</div>
+        <div class="status">{{ location.bikeData?.status || 'Available' }}</div>
+        <div class="subtext">{{ location.bikeData?.available || 15 }} bikes available at nearby stations</div>
+        <div class="highlight-box">
+          Closest station: {{ location.bikeData?.closestStation || 'Market & 5th St' }} ({{ location.bikeData?.walkTime || '2 min' }} walk)
+        </div>
+      </div>
+    </div>
+
+    <!-- Weather Section -->
+    <div *ngIf="activeTab === 'weather'" class="section">
+      <div class="info-section">
+        <h3>Weather Information</h3>
+        <p>Weather details coming soon...</p>
+      </div>
+    </div>
+
+    <!-- Culture Section -->
+    <div *ngIf="activeTab === 'culture'" class="section">
+      <div class="info-section">
+        <h3>Cultural Information</h3>
+        <p>Cultural details coming soon...</p>
+      </div>
+    </div>
+
+    <!-- Music Section -->
+    <div *ngIf="activeTab === 'music'" class="section">
+      <div class="info-section">
+        <h3>Music & Events</h3>
+        <p>Music information coming soon...</p>
+      </div>
+    </div>
+
+    <!-- Pollution Section -->
+    <div *ngIf="activeTab === 'pollution'" class="section">
+      <div class="info-section">
+        <h3>Air Pollution</h3>
+        <p>Pollution data coming soon...</p>
+      </div>
+    </div>
+  </div>
+</div>

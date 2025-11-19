@@ -1,0 +1,19 @@
+<div class="map-wrapper">
+  <div class="map-loading" *ngIf="isLoading()">
+    <div class="spinner"></div>
+    <p>Loading map...</p>
+  </div>
+  <div #mapContainer class="map-container"></div>
+  <app-location-card 
+    [location]="selectedLocation()!" 
+    [visible]="cardVisible()"
+    [x]="cardX()"
+    [y]="cardY()">
+  </app-location-card>
+  <app-detail-panel
+    [location]="panelLocation()!"
+    [isOpen]="panelOpen()"
+    (close)="onPanelClose()"
+    (tabChange)="onTabChange($event)">
+  </app-detail-panel>
+</div>

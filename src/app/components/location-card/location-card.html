@@ -1,0 +1,28 @@
+<div class="card" *ngIf="visible" [style.left.px]="x" [style.top.px]="y">
+  <div class="card-header">
+    <h2>{{ location.name }}</h2>
+    <span class="live-badge">Live</span>
+  </div>
+
+  <div class="grid">
+    <div class="grid-item">
+      <div class="label">Temp</div>
+      <div class="value">{{ location.temp }}</div>
+    </div>
+
+    <div class="grid-item">
+      <div class="label">Pollution</div>
+      <div class="value">{{ location.pollution }}</div>
+    </div>
+
+    <div class="grid-item">
+      <div class="label">Culture</div>
+      <div class="value">{{ location.culture }}</div>
+    </div>
+
+    <div class="grid-item">
+      <div class="label">Mobility</div>
+      <div class="value">{{ location.mobility }}</div>
+    </div>
+  </div>
+</div>
