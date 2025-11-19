@@ -1,0 +1,60 @@
+.card {
+  position: fixed;
+  width: 260px;
+  background: #ffffff;
+  border: 1px solid #e2e2e2;
+  border-radius: 16px;
+  padding: 16px;
+  font-family: sans-serif;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #04444C;
+  font-weight: 600;
+}
+
+.live-badge {
+  background: #d4f8d4;
+  color: #1a7f1a;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.grid-item {
+  background: #f3f3f3;
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.label {
+  color: #91935D;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.value {
+  font-weight: 600;
+  color: #04444C;
+}

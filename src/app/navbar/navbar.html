@@ -1,0 +1,70 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Logo -->
+    <div class="navbar-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="15" stroke="url(#gradient)" stroke-width="2"/>
+        <path d="M16 2C8.27 2 2 8.27 2 16s6.27 14 14 14 14-6.27 14-14-6.27-14-14-14z" fill="url(#gradient)" opacity="0.1"/>
+        <defs>
+          <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+            <stop offset="0%" stop-color="#FF6B35"/>
+            <stop offset="100%" stop-color="#7C3AED"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="logo-text">EarthVibes</span>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search locations..."
+        [value]="searchQuery()"
+        (input)="onSearchChange($event.target.value)"
+      />
+    </div>
+
+    <!-- Nav Items -->
+    <div class="nav-items">
+      <button
+        class="nav-item"
+        [class.active]="activeNav() === 'home'"
+        routerLink="/"
+        (click)="setActive('home')"
+      >
+        Home
+      </button>
+      <button
+        class="nav-item"
+        [class.active]="activeNav() === 'explore'"
+        routerLink="/explore"
+        (click)="setActive('explore')"
+      >
+        Explore
+      </button>
+      <button
+        class="nav-item"
+        [class.active]="activeNav() === 'voyager'"
+        routerLink="/voyager"
+        (click)="setActive('voyager')"
+      >
+        Voyager
+      </button>
+    </div>
+
+    <!-- Profile Pic -->
+    <div class="profile-pic">
+      <img
+        src="https://ui-avatars.com/api/?name=User&background=random&rounded=true"
+        alt="Profile"
+        class="profile-image"
+      />
+    </div>
+  </div>
+</nav>

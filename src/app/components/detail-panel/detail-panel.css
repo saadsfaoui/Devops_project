@@ -1,0 +1,263 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 998;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.panel {
+  position: fixed;
+  right: 0;
+  top: 80px;
+  height: calc(100vh - 80px);
+  width: 45%;
+  background: #d9e8e3;
+  z-index: 999;
+  overflow-y: auto;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+  animation: slideInRight 0.3s ease-out;
+}
+
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+.card-header {
+  background-size: cover;
+  background-position: center;
+  height: 260px;
+  border-radius: 0;
+  color: white;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  margin: 0;
+}
+
+.compare-btn{
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.9);
+  color: #04444C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 700;
+  z-index: 1001;
+}
+
+.city-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+}
+
+.city-subtitle {
+  margin-top: 6px;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.tabs {
+  margin: 25px 20px;
+  background: white;
+  border-radius: 50px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.tab {
+  flex: 1;
+  min-width: 70px;
+  text-align: center;
+  padding: 12px 8px;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #444;
+  transition: 0.3s;
+  align-items: center;
+}
+
+.tab-icon {
+  font-size: 1.3rem;
+}
+
+.tab-label {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.tab.active {
+  background: #3f6b63;
+  color: white;
+}
+
+.content {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.section {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bike-section {
+  background: white;
+  padding: 30px;
+  border-radius: 25px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.bike-icon {
+  font-size: 50px;
+}
+
+.status {
+  color: #22aa33;
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.subtext {
+  margin-top: 6px;
+  font-size: 1rem;
+  color: #666;
+}
+
+.highlight-box {
+  margin-top: 15px;
+  padding: 15px;
+  background: #e8f7ee;
+  border-radius: 15px;
+  color: #3e7b4b;
+  font-weight: 500;
+}
+
+.info-section {
+  background: white;
+  padding: 30px;
+  border-radius: 25px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.info-section h3 {
+  margin-top: 0;
+  color: #04444C;
+  font-size: 1.3rem;
+}
+
+.info-section p {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Scrollbar styling */
+.panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: #91935D;
+  border-radius: 4px;
+}
+
+.panel::-webkit-scrollbar-thumb:hover {
+  background: #CBC79E;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .panel {
+    width: 60%;
+  }
+}
+
+@media (max-width: 768px) {
+  .panel {
+    width: 100%;
+  }
+
+  .city-title {
+    font-size: 2rem;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    min-width: 60px;
+  }
+}
