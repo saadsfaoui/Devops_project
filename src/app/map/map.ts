@@ -23,6 +23,8 @@ export class MapComponent implements OnInit {
   
   panelOpen = signal(false);
   panelLocation = signal<LocationDetail | null>(null);
+  
+  private hoveredMarkerData: any = null;
 
   private markerData = [
     { 
@@ -116,7 +118,28 @@ export class MapComponent implements OnInit {
       this.addMarker(L, data);
     });
 
+    // Update card position when map is panned or zoomed
+    this.map.on('move', () => {
+      this.updateCardPosition();
+    });
+
+    this.map.on('zoom', () => {
+      this.updateCardPosition();
+    });
+
+    // Track mouse movement to update card position
+    this.mapContainer.nativeElement.addEventListener('mousemove', (e: MouseEvent) => {
+      if (this.cardVisible() && this.hoveredMarkerData) {
+        this.cardX.set(e.clientX + 15);
+        this.cardY.set(e.clientY - 150);
+      }
+    });
+
     this.isLoading.set(false);
+  }
+
+  private updateCardPosition() {
+    // No longer needed with cursor-based positioning
   }
 
   private addMarker(L: any, data: any) {
@@ -125,6 +148,7 @@ export class MapComponent implements OnInit {
     const marker = L.marker([data.lat, data.lng]).addTo(this.map);
     
     marker.on('mouseover', (event: any) => {
+      this.hoveredMarkerData = data;
       this.selectedLocation.set({
         name: data.name,
         temp: data.temp,
@@ -133,15 +157,17 @@ export class MapComponent implements OnInit {
         mobility: data.mobility
       });
       
-      // Get marker position and convert to screen coordinates
-      const markerPoint = this.map.latLngToLayerPoint([data.lat, data.lng]);
-      this.cardX.set(markerPoint.x + 15);
-      this.cardY.set(markerPoint.y - 150);
+      // Position card at cursor location
+      const clientX = event.originalEvent?.clientX || 0;
+      const clientY = event.originalEvent?.clientY || 0;
+      this.cardX.set(clientX + 15);
+      this.cardY.set(clientY - 150);
       this.cardVisible.set(true);
     });
     
     marker.on('mouseout', () => {
       this.cardVisible.set(false);
+      this.hoveredMarkerData = null;
     });
 
     // Click event to open detail panel
