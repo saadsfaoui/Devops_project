@@ -151,8 +151,6 @@
   transition: border-color 0.3s ease;
 }
 
-<<<<<<< Updated upstream
-=======
 .profile-initials {
   width: 40px;
   height: 40px;
@@ -212,7 +210,6 @@
 .flash-banner > div.success { background: #1e7f3e; color: #fff }
 .flash-banner > div.error { background: #c0392b; color: #fff }
 
->>>>>>> Stashed changes
 .profile-pic:hover .profile-image {
   border-color: #CBC79E;
 }
