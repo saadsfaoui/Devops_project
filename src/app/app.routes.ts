@@ -6,7 +6,6 @@ import { ComparateurComponent } from './pages/comparateur/comparateur';
 import { authGuard } from "./guards/auth.guard"
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
-import { AuthGuard } from '@angular/fire/auth-guard';
 
 export const routes: Routes = [
   {

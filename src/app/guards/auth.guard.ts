@@ -1,19 +1,22 @@
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
+import { map, take } from 'rxjs/operators';
+import { authState } from '@angular/fire/auth';
 
 export const authGuard = () => {
   const auth = inject(Auth);
   const router = inject(Router);
 
-  return new Promise((resolve) => {
-    auth.onAuthStateChanged((user) => {
+  return authState(auth).pipe(
+    take(1),
+    map(user => {
       if (user) {
-        resolve(true);
+        return true;
       } else {
         router.navigate(['/login']);
-        resolve(false);
+        return false;
       }
-    });
-  });
+    })
+  );
 };
