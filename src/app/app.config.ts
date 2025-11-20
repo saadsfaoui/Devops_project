@@ -11,6 +11,17 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes), provideClientHydration(withEventReplay()), provideFirebaseApp(() => initializeApp({ projectId: "earthvibesapp", appId: "1:991705463606:web:4e0a1e7182370b5b389197", storageBucket: "earthvibesapp.firebasestorage.app", apiKey: "AIzaSyAbNr5NtBWNNpXEw9T1zrP5mi6_VO2Wxuk", authDomain: "earthvibesapp.firebaseapp.com", messagingSenderId: "991705463606", projectNumber: "991705463606", version: "2" })), provideAuth(() => getAuth()), provideFirestore(() => getFirestore())
+    provideRouter(routes),
+    provideClientHydration(withEventReplay()),
+    provideFirebaseApp(() => initializeApp({
+      projectId: "earthvibesapp",
+      appId: "1:991705463606:web:4e0a1e7182370b5b389197",
+      storageBucket: "earthvibesapp.firebasestorage.app",
+      apiKey: "AIzaSyAbNr5NtBWNNpXEw9T1zrP5mi6_VO2Wxuk",
+      authDomain: "earthvibesapp.firebaseapp.com",
+      messagingSenderId: "991705463606"
+    })),
+    provideAuth(() => getAuth()),
+    provideFirestore(() => getFirestore())
   ]
 };
