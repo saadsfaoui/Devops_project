@@ -58,6 +58,7 @@
       </button>
     </div>
 
+<<<<<<< Updated upstream
     <!-- Profile Pic -->
     <div class="profile-pic">
       <img
@@ -65,6 +66,26 @@
         alt="Profile"
         class="profile-image"
       />
+=======
+    <!-- Auth Actions -->
+    <div class="auth-actions">
+      <ng-container *ngIf="!loggedIn()">
+        <a class="nav-link" routerLink="/login">Sign in</a>
+        <a class="nav-link signup" routerLink="/register">Sign up</a>
+      </ng-container>
+
+      <div class="profile-pic" *ngIf="loggedIn()" (click)="toggleProfileMenu($event)">
+        <img *ngIf="profileUrl()" [src]="profileUrl()" alt="Profile" class="profile-image" />
+        <div *ngIf="!profileUrl() && userInitials()" class="profile-initials">
+          {{ userInitials() }}
+        </div>
+
+        <div class="profile-menu" *ngIf="showProfileMenu()" (click)="$event.stopPropagation()">
+          <a class="menu-item" (click)="goAccount($event)">Account</a>
+          <a class="menu-item" (click)="signOut()">Sign out</a>
+        </div>
+      </div>
+>>>>>>> Stashed changes
     </div>
   </div>
 </nav>
