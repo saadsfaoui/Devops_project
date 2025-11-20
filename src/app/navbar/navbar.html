@@ -1,4 +1,7 @@
 <nav class="navbar">
+  <div class="flash-banner" *ngIf="flashMessage()">
+    <div [class.success]="flashType() === 'success'" [class.error]="flashType() === 'error'">{{ flashMessage() }}</div>
+  </div>
   <div class="navbar-container">
     <!-- Logo -->
     <div class="navbar-logo">
@@ -58,13 +61,21 @@
       </button>
     </div>
 
-    <!-- Profile Pic -->
-    <div class="profile-pic">
-      <img
-        src="https://ui-avatars.com/api/?name=User&background=random&rounded=true"
-        alt="Profile"
-        class="profile-image"
-      />
+    <!-- Auth Actions -->
+    <div class="auth-actions">
+      <ng-container *ngIf="!loggedIn()">
+        <a class="nav-link" routerLink="/login">Sign in</a>
+        <a class="nav-link signup" routerLink="/register">Sign up</a>
+      </ng-container>
+
+      <div class="profile-pic" *ngIf="loggedIn()" (click)="toggleProfileMenu($event)">
+        <img [src]="profileUrl()" alt="Profile" class="profile-image" />
+
+        <div class="profile-menu" *ngIf="showProfileMenu()" (click)="$event.stopPropagation()">
+          <a class="menu-item" (click)="goAccount($event)">Account</a>
+          <a class="menu-item" (click)="signOut()">Sign out</a>
+        </div>
+      </div>
     </div>
   </div>
 </nav>
