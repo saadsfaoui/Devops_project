@@ -10,7 +10,7 @@ import { RegisterComponent } from './pages/register/register.component';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'home',
+    component: LandingComponent,
     pathMatch: 'full'
   },
   {
@@ -21,11 +21,7 @@ export const routes: Routes = [
     path: 'register',
     component: RegisterComponent
   },
-  {
-    path: 'home',
-    component: LandingComponent,
-    pathMatch: 'full'
-  },
+  
   {
     path: 'explore',
     component: ExploreComponent,
