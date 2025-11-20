@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "Firebase_Project": {
+    "firebase-project": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -58,10 +58,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "Firebase_Project:build:production"
+              "buildTarget": "firebase-project:build:production"
             },
             "development": {
-              "buildTarget": "Firebase_Project:build:development"
+              "buildTarget": "firebase-project:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -86,5 +86,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

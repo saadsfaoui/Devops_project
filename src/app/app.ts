@@ -9,5 +9,5 @@ import { NavbarComponent } from './navbar/navbar';
   styleUrl: './app.css'
 })
 export class App {
-  protected readonly title = signal('Firebase_Project');
+  protected readonly title = signal('firebase-project');
 }
