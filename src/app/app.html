@@ -1,4 +1,6 @@
 <!-- App Navigation and Main Content -->
 
-<app-navbar></app-navbar>
+@if (showNavbar()) {
+  <app-navbar></app-navbar>
+}
 <router-outlet></router-outlet>
