@@ -29,7 +29,7 @@ export class LoginComponent {
 
     try {
       await this.authService.login(this.email(), this.password());
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/home']);
     } catch (error: any) {
       this.errorMessage.set(this.getErrorMessage(error.code));
     } finally {
@@ -43,7 +43,7 @@ export class LoginComponent {
 
     try {
       await this.authService.loginWithGoogle();
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/home']);
     } catch (error: any) {
       this.errorMessage.set(this.getErrorMessage(error.code));
     } finally {

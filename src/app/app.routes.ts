@@ -3,14 +3,15 @@ import { ExploreComponent } from './pages/explore/explore';
 import { VoyagerComponent } from './pages/voyager/voyager';
 import { LandingComponent } from './pages/landing/landing';
 import { ComparateurComponent } from './pages/comparateur/comparateur';
-import { AuthGuard } from './guards/auth.guard';
-import { LoginComponent } from './components/login/login.component';
-import { RegisterComponent } from './components/register/register.component';
+import { authGuard } from "./guards/auth.guard"
+import { LoginComponent } from './pages/login/login.component';
+import { RegisterComponent } from './pages/register/register.component';
+import { AuthGuard } from '@angular/fire/auth-guard';
 
 export const routes: Routes = [
   {
     path: '',
-    component: LandingComponent,
+    redirectTo: 'home',
     pathMatch: 'full'
   },
   {
@@ -23,20 +24,23 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    redirectTo: '',
+    component: LandingComponent,
     pathMatch: 'full'
   },
   {
     path: 'explore',
-    component: ExploreComponent
+    component: ExploreComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'voyager',
-    component: VoyagerComponent
+    component: VoyagerComponent,
+    canActivate: [authGuard]
   }
   ,
   {
     path: 'comparateur',
-    component: ComparateurComponent
+    component: ComparateurComponent,
+    canActivate: [authGuard]
   }
 ];

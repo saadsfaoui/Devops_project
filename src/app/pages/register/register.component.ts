@@ -37,7 +37,7 @@ export class RegisterComponent {
 
     try {
       await this.authService.register(this.email(), this.password());
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/home']);
     } catch (error: any) {
       this.errorMessage.set(this.getErrorMessage(error.code));
     } finally {
