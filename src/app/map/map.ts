@@ -79,8 +79,9 @@ export class MapComponent implements OnInit {
   private async initializeMap() {
     if (!this.mapContainer) return;
 
-    // Dynamically import Leaflet only on browser
-    const L = await import('leaflet');
+    try {
+      // Dynamically import Leaflet only on browser
+      const { default: L } = await import('leaflet');
 
     // Fix Leaflet icon issue
     delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -106,7 +107,11 @@ export class MapComponent implements OnInit {
       this.addMarker(L, data);
     });
 
-    this.isLoading.set(false);
+      this.isLoading.set(false);
+    } catch (error) {
+      console.error('Failed to initialize Leaflet map:', error);
+      this.isLoading.set(false);
+    }
   }
 
   private addMarker(L: any, data: MarkerData) {
