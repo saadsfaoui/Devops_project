@@ -6,6 +6,24 @@ import { LocationCardComponent, LocationData } from '../components/location-card
 import { DetailPanelComponent, LocationDetail, BikeData } from '../components/detail-panel/detail-panel';
 import { ApiService } from '../services/api.service';
 
+interface MarkerData {
+  lat: number;
+  lng: number;
+  name: string;
+  temp: string;
+  pollution: number;
+  culture: number;
+  mobility: string;
+  imageUrl: string;
+  country: string;
+  bikeData: {
+    status: string;
+    available: number;
+    closestStation: string;
+    walkTime: string;
+  };
+}
+
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -91,7 +109,7 @@ export class MapComponent implements OnInit {
     this.isLoading.set(false);
   }
 
-  private addMarker(L: any, data: any) {
+  private addMarker(L: any, data: MarkerData) {
     if (!this.map) return;
 
     const marker = L.marker([data.lat, data.lng]).addTo(this.map);

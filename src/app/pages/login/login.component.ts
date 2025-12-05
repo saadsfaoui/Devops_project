@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { FlashService } from '../../services/flash.service';
 
 @Component({
   selector: 'app-login',
@@ -13,15 +14,13 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private flash = inject(FlashService);
 
   email = signal('');
   password = signal('');
   errorMessage = signal('');
   isLoading = signal(false);
   isGoogleLoading = signal(false);
-  isFacebookLoading = signal(false);
-  isTwitterLoading = signal(false);
-  isGithubLoading = signal(false);
 
   async onLogin() {
     this.isLoading.set(true);
@@ -29,6 +28,8 @@ export class LoginComponent {
 
     try {
       await this.authService.login(this.email(), this.password());
+      // show success and go to explore
+      this.flash.show('Logged in successfully', 'success', 2500);
       this.router.navigate(['/explore']);
     } catch (error: any) {
       this.errorMessage.set(this.getErrorMessage(error.code));
@@ -43,7 +44,8 @@ export class LoginComponent {
 
     try {
       await this.authService.loginWithGoogle();
-      this.router.navigate(['/home']);
+      this.flash.show('Logged in successfully', 'success', 2500);
+      this.router.navigate(['/explore']);
     } catch (error: any) {
       this.errorMessage.set(this.getErrorMessage(error.code));
     } finally {

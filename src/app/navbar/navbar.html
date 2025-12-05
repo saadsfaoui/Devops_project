@@ -26,7 +26,7 @@
         class="search-input"
         placeholder="Search locations..."
         [value]="searchQuery()"
-        (input)="onSearchChange($event.target.value)"
+        (input)="onSearchChange(($any($event.target)).value)"
       />
     </div>
 
@@ -66,10 +66,14 @@
       </ng-container>
 
       <div class="profile-pic" *ngIf="loggedIn()" (click)="toggleProfileMenu($event)">
-        <img *ngIf="profileUrl()" [src]="profileUrl()" alt="Profile" class="profile-image" />
-        <div *ngIf="!profileUrl() && userInitials()" class="profile-initials">
-          {{ userInitials() }}
-        </div>
+        <img
+          *ngIf="profileUrl()"
+          [src]="profileUrl()"
+          alt="Profile"
+          class="profile-image"
+          (error)="onProfileImageError()"
+        />
+        <div *ngIf="!profileUrl()" class="profile-initial">{{ userInitial() }}</div>
 
         <div class="profile-menu" *ngIf="showProfileMenu()" (click)="$event.stopPropagation()">
           <a class="menu-item" (click)="goAccount($event)">Account</a>

@@ -37,6 +37,10 @@ export class RegisterComponent {
 
     try {
       await this.authService.register(this.email(), this.password());
+      // Wait for auth state to be confirmed
+      await this.authService.waitForAuthState();
+      // Small additional delay to ensure navbar subscription processes the update
+      await new Promise(resolve => setTimeout(resolve, 50));
       this.router.navigate(['/home']);
     } catch (error: any) {
       this.errorMessage.set(this.getErrorMessage(error.code));

@@ -133,6 +133,7 @@
 
 /* Profile Pic */
 .profile-pic {
+  position: relative;
   flex-shrink: 0;
   cursor: pointer;
   transition: transform 0.3s ease;
@@ -151,22 +152,25 @@
   transition: border-color 0.3s ease;
 }
 
-.profile-initials {
+.profile-initial {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   border: 2px solid #91935D;
   background: linear-gradient(135deg, #CBC79E 0%, #91935D 100%);
-  color: #04444C;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.1rem;
   font-weight: 700;
-  font-size: 0.9rem;
-  transition: border-color 0.3s ease;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  user-select: none;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
-.profile-pic:hover .profile-initials {
+.profile-pic:hover .profile-initial {
   border-color: #CBC79E;
 }
 

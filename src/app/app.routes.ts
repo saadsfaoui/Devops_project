@@ -35,8 +35,7 @@ export const routes: Routes = [
     path: 'voyager',
     component: VoyagerComponent,
     canActivate: [authGuard]
-  }
-  ,
+  },
   {
     path: 'comparateur',
     component: ComparateurComponent,

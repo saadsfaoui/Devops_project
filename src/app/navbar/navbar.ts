@@ -1,10 +1,10 @@
-import { Component, signal, OnInit, effect, ChangeDetectorRef } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
-import { FlashService } from '../services/flash.service';
 
 @Component({
   selector: 'app-navbar',
@@ -13,20 +13,34 @@ import { FlashService } from '../services/flash.service';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   searchQuery = signal('');
   activeNav = signal('home');
   loggedIn = signal(false);
-  profileUrl = signal('');
-  userInitials = signal('');
+  profileUrl = signal<string | null>(null);
+  userInitial = signal<string>('');
   showProfileMenu = signal(false);
-  flashMessage = signal('');
-  flashType = signal<'success' | 'error' | ''>('');
+
+  private authSubscription?: Subscription;
+  private routerSubscription?: Subscription;
+  private lastInitial = 'U';
+  private clickHandler = () => {
+    this.showProfileMenu.set(false);
+  };
+  
+  // For debugging
+  get debugInfo() {
+    return {
+      loggedIn: this.loggedIn(),
+      profileUrl: this.profileUrl(),
+      userInitial: this.userInitial(),
+      hasProfileUrl: !!this.profileUrl()
+    };
+  }
 
   constructor(
     private router: Router, 
-    private auth: AuthService, 
-    private flash: FlashService,
+    private auth: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -35,95 +49,77 @@ export class NavbarComponent implements OnInit {
     this.updateActiveNav();
 
     // Update active nav on route changes
-    this.router.events
+    this.routerSubscription = this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
         this.updateActiveNav();
       });
 
-    // Subscribe to auth state and update UI
-    this.auth.user$.subscribe(user => {
+    // Subscribe to auth state changes
+    this.authSubscription = this.auth.user$.subscribe(user => {
+      console.log('🔔 AUTH STATE CHANGE', user ? 'User logged in' : 'User logged out');
       if (user) {
         this.loggedIn.set(true);
         this.updateUserProfile(user);
+        this.cdr.markForCheck();
       } else {
         this.loggedIn.set(false);
-        this.profileUrl.set('');
-        this.userInitials.set('');
+        this.profileUrl.set(null);
+        this.userInitial.set('');
+        this.cdr.markForCheck();
       }
       // Trigger change detection to update UI immediately
       this.cdr.detectChanges();
     });
 
-    // Also refresh auth state immediately on init (synchronous check)
-    this.refreshAuthState();
-
     // Close profile menu when clicking outside
-    document.addEventListener('click', () => {
-      this.showProfileMenu.set(false);
-    });
+    document.addEventListener('click', this.clickHandler);
+  }
 
-    // reactively bind flash.message and flash.type using effect
-    effect(() => {
-      this.flashMessage.set(this.flash.message());
-      this.flashType.set(this.flash.type());
-    });
+  ngOnDestroy() {
+    this.authSubscription?.unsubscribe();
+    this.routerSubscription?.unsubscribe();
+    document.removeEventListener('click', this.clickHandler);
   }
 
   private updateUserProfile(user: any) {
-    // Set profile image URL
+    console.log('=== UPDATE USER PROFILE ===');
+    console.log('User object:', user);
+    console.log('User photoURL:', user.photoURL);
+    console.log('User email:', user.email);
+    console.log('User displayName:', user.displayName);
+    
+    // Check if user has a photo URL (from Google login)
+    const initial = this.computeInitialFromUser(user);
+    this.lastInitial = initial;
+
     if (user.photoURL) {
       this.profileUrl.set(user.photoURL);
+      this.userInitial.set('');
+      console.log('SET: Using photo URL');
     } else {
-      // Generate initials from display name or email
-      const name = user.displayName || user.email || 'User';
-      const initials = this.getInitials(name);
-      this.userInitials.set(initials);
-      // Use ui-avatars API as fallback
-      const url = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&rounded=true`;
-      this.profileUrl.set(url);
+      this.profileUrl.set(null);
+      this.userInitial.set(initial);
+      console.log('SET: profileUrl=null, userInitial=' + initial);
     }
+    
+    console.log('FINAL STATE: profileUrl:', this.profileUrl(), 'userInitial:', this.userInitial());
+    console.log('=========================');
   }
 
-  private getInitials(name: string): string {
-    if (!name) return 'U';
-    
-    // If it's an email, use the first letter before @
-    if (name.includes('@')) {
-      return name.charAt(0).toUpperCase();
-    }
-    
-    // Split by spaces and get first letter of each word
-    const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) {
-      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
-    }
-    
-    // Single word - return first 2 letters
-    return name.substring(0, 2).toUpperCase();
-  }
-
-  private refreshAuthState() {
-    try {
-      const user = this.auth.getCurrentUser();
-      if (user) {
-        this.loggedIn.set(true);
-        this.updateUserProfile(user);
-      } else {
-        this.loggedIn.set(false);
-        this.profileUrl.set('');
-        this.userInitials.set('');
-      }
-      // Trigger change detection
-      this.cdr.detectChanges();
-    } catch (err) {
-      // ignore
-    }
+  private computeInitialFromUser(user: any): string {
+    const name = user.displayName || user.email || 'U';
+    return name.trim().charAt(0).toUpperCase();
   }
 
   toggleProfileMenu(event: MouseEvent) {
     event.stopPropagation();
     this.showProfileMenu.set(!this.showProfileMenu());
+  }
+
+  onProfileImageError() {
+    this.profileUrl.set(null);
+    this.userInitial.set(this.lastInitial);
   }
 
   async signOut() {
