@@ -1,72 +1,101 @@
-<div class="column">
-
-  <div class="card">
-    <h2>City Name</h2>
-    <p class="subtitle">Country</p>
+<div class="column" *ngIf="data">
+  <!-- City Info Card -->
+  <div class="card" *ngIf="data.weather">
+    <h2>{{ data.city }}</h2>
+    <p class="subtitle">{{ data.weather.location?.country || 'Unknown' }}</p>
     <div class="info-grid">
-      <div>Population<br><strong>8.9 million</strong></div>
-      <div>Time Zone<br><strong>UTC +2</strong></div>
-      <div>Local Time<br><strong>15:40</strong></div>
+      <div>
+        Population<br>
+        <strong>Data not available</strong>
+      </div>
+      <div>
+        Time Zone<br>
+        <strong>{{ data.weather.location?.tz_id || 'N/A' }}</strong>
+      </div>
+      <div>
+        Local Time<br>
+        <strong>{{ data.weather.location?.localtime?.split(' ')[1] || '—' }}</strong>
+      </div>
     </div>
   </div>
 
-  <div class="card">
+  <!-- Climate Card -->
+  <div class="card" *ngIf="data.weather">
     <h3>Climate</h3>
     <div class="info-grid">
-      <div>Temperature<br><strong>12 C</strong></div>
-      <div>Humidity<br><strong>80%</strong></div>
-      <div>Wind speed<br><strong>15 km/h</strong></div>
-      <div>Condition<br><strong>Cloudy</strong></div>
-    </div>
-
-    <div class="air-quality">
-      <div>PM2.5<br><strong>20.9</strong></div>
-      <div>KPIII<br><strong>403</strong></div>
-      <div>KPIIII<br><strong>192</strong></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Cultural Energy</h3>
-    <div class="ce-top">
-      <div>Upcoming events<br><strong>25</strong></div>
-      <div class="pie">● ● ●</div>
-    </div>
-
-    <div class="event">
-      <div class="event-img"></div>
       <div>
-        <p class="event-title">Event Name</p>
-        <p class="event-text">Body text or whatever you'd like to say.</p>
+        Temperature<br>
+        <strong>{{ data.weather.current?.temp_c || '—' }}°C</strong>
+      </div>
+      <div>
+        Humidity<br>
+        <strong>{{ data.weather.current?.humidity || '—' }}%</strong>
+      </div>
+      <div>
+        Wind speed<br>
+        <strong>{{ data.weather.current?.wind_kph || '—' }} km/h</strong>
+      </div>
+      <div>
+        Condition<br>
+        <strong>{{ data.weather.current?.condition?.text || '—' }}</strong>
       </div>
     </div>
 
-    <div class="event">
-      <div class="event-img"></div>
+    <div class="air-quality" *ngIf="data.airQuality">
       <div>
-        <p class="event-title">Event Name</p>
-        <p class="event-text">Body text or whatever you'd like to say.</p>
+        PM2.5<br>
+        <strong>{{ data.airQuality.pm25 || '—' }}</strong>
+      </div>
+      <div>
+        AQI<br>
+        <strong>{{ data.airQuality.aqi || '—' }}</strong>
+      </div>
+      <div>
+        NO₂<br>
+        <strong>{{ data.airQuality.no2 || '—' }}</strong>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <h3>Local Soundscape</h3>
-    <div class="artists">
-      <div class="artist"></div>
-      <div class="artist"></div>
-      <div class="artist"></div>
+  <!-- Events Card -->
+  <div class="card" *ngIf="data.events && data.events.length > 0">
+    <h3>Upcoming Events</h3>
+    <div>
+      <strong>{{ data.events.length }} events</strong>
     </div>
-
-    <div class="track">
-      <div class="avatar"></div>
-      <p class="track-title">Title — Album Name</p>
-    </div>
-
-    <div class="track">
-      <div class="avatar"></div>
-      <p class="track-title">Title — Album Name</p>
+    <div class="event" *ngFor="let event of data.events.slice(0, 2)">
+      <div class="event-img" *ngIf="event.image" [style.background-image]="'url(' + event.image + ')'"></div>
+      <div class="event-img" *ngIf="!event.image"></div>
+      <div>
+        <p class="event-title">{{ event.name }}</p>
+        <p class="event-text">{{ event.date }} — {{ event.venue }}</p>
+      </div>
     </div>
   </div>
 
+  <!-- Bikes Card -->
+  <div class="card" *ngIf="data.bikes">
+    <h3>Bike Sharing</h3>
+    <div *ngIf="data.bikes.stations && data.bikes.stations.length > 0">
+      <strong>{{ data.bikes.name }}</strong>
+      <p class="subtitle">{{ data.bikes.stations.length }} stations available</p>
+      <div class="info-grid">
+        <div>
+          Free bikes<br>
+          <strong>{{ data.bikes.stations[0]?.free_bikes || '—' }}</strong>
+        </div>
+        <div>
+          Available slots<br>
+          <strong>{{ data.bikes.stations[0]?.empty_slots || '—' }}</strong>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!data.bikes.stations || data.bikes.stations.length === 0">
+      <p class="subtitle">No bike sharing available</p>
+    </div>
+  </div>
+</div>
+
+<div class="column empty" *ngIf="!data">
+  <p class="subtitle">Select a city to compare</p>
 </div>

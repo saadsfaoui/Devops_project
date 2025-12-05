@@ -2,6 +2,13 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
+export interface BikeData {
+  status: string;
+  available: number;
+  closestStation: string;
+  walkTime: string;
+}
+
 export interface LocationDetail {
   name: string;
   country: string;
@@ -12,12 +19,7 @@ export interface LocationDetail {
   weatherData?: any;
   cultureData?: any;
   musicData?: any;
-  bikeData?: {
-    status: string;
-    available: number;
-    closestStation: string;
-    walkTime: string;
-  };
+  bikeData?: BikeData;
   pollutionData?: any;
 }
 

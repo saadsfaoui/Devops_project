@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { LocationCardComponent, LocationData } from '../components/location-card/location-card';
-import { DetailPanelComponent, LocationDetail } from '../components/detail-panel/detail-panel';
+import { DetailPanelComponent, LocationDetail, BikeData } from '../components/detail-panel/detail-panel';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-map',
@@ -23,64 +24,32 @@ export class MapComponent implements OnInit {
   
   panelOpen = signal(false);
   panelLocation = signal<LocationDetail | null>(null);
-  
-  private hoveredMarkerData: any = null;
 
-  private markerData = [
-    { 
-      lat: 40.7128, 
-      lng: -74.006, 
-      name: 'New York', 
-      temp: '12°C', 
-      pollution: 45, 
-      culture: 85, 
-      mobility: 'Subway, Buses, Taxis',
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Southwest_corner_of_Central_Park%2C_NYC.jpg/1200px-Southwest_corner_of_Central_Park%2C_NYC.jpg',
-      country: 'United States',
-      bikeData: { status: 'Available', available: 12, closestStation: 'Times Square Station', walkTime: '3 min' }
-    },
-    { 
-      lat: 48.8566, 
-      lng: 2.3522, 
-      name: 'Paris', 
-      temp: '16°C', 
-      pollution: 35, 
-      culture: 95, 
-      mobility: 'Metro, RER, Vélib\'',
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a8/Tour_Eiffel_Wikimedia_Commons.jpg',
-      country: 'France',
-      bikeData: { status: 'Available', available: 15, closestStation: 'Market & 5th St', walkTime: '2 min' }
-    },
-    { 
-      lat: 51.5074, 
-      lng: -0.1278, 
-      name: 'London', 
-      temp: '14°C', 
-      pollution: 42, 
-      culture: 90, 
-      mobility: 'Underground, Buses, Taxis',
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Big_Ben%2C_Elizabeth_Tower.jpg',
-      country: 'United Kingdom',
-      bikeData: { status: 'Available', available: 18, closestStation: 'Big Ben Station', walkTime: '2 min' }
-    },
-    { 
-      lat: 35.6762, 
-      lng: 139.6503, 
-      name: 'Tokyo', 
-      temp: '22°C', 
-      pollution: 38, 
-      culture: 92, 
-      mobility: 'Trains, Subways, Taxis',
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Shibuya_Crossing%2C_Tokyo%2C_9_November_2019.jpg',
-      country: 'Japan',
-      bikeData: { status: 'Available', available: 20, closestStation: 'Shibuya Station', walkTime: '1 min' }
-    }
-  ];
+  private weatherCache: Map<string, any> = new Map();
+  private airQualityCache: Map<string, any> = new Map();
+  private bikeCache: Map<string, any> = new Map();
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private apiService: ApiService
+  ) {}
 
   ngOnInit() {
-    // Empty for now
+    // Initialize default markers for major cities
+    this.initializeDefaultMarkers();
+  }
+
+  private initializeDefaultMarkers() {
+    const defaultCities = [
+      { lat: 40.7128, lng: -74.006, name: 'New York', country: 'United States', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Southwest_corner_of_Central_Park%2C_NYC.jpg/1200px-Southwest_corner_of_Central_Park%2C_NYC.jpg' },
+      { lat: 48.8566, lng: 2.3522, name: 'Paris', country: 'France', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a8/Tour_Eiffel_Wikimedia_Commons.jpg' },
+      { lat: 51.5074, lng: -0.1278, name: 'London', country: 'United Kingdom', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Big_Ben%2C_Elizabeth_Tower.jpg' },
+      { lat: 35.6762, lng: 139.6503, name: 'Tokyo', country: 'Japan', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Shibuya_Crossing%2C_Tokyo%2C_9_November_2019.jpg' },
+      { lat: -33.8688, lng: 151.2093, name: 'Sydney', country: 'Australia', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a0/Opera_House_and_Harbour_Bridge.jpg' }
+    ];
+    
+    // Store for use after map initialization
+    (window as any).defaultCities = defaultCities;
   }
 
   ngAfterViewInit() {
@@ -114,7 +83,8 @@ export class MapComponent implements OnInit {
     }).addTo(this.map);
 
     // Add markers with hover and click events
-    this.markerData.forEach(data => {
+    const defaultCities = (window as any).defaultCities || [];
+    defaultCities.forEach((data: any) => {
       this.addMarker(L, data);
     });
 
@@ -147,15 +117,27 @@ export class MapComponent implements OnInit {
 
     const marker = L.marker([data.lat, data.lng]).addTo(this.map);
     
-    marker.on('mouseover', (event: any) => {
-      this.hoveredMarkerData = data;
-      this.selectedLocation.set({
-        name: data.name,
-        temp: data.temp,
-        pollution: data.pollution,
-        culture: data.culture,
-        mobility: data.mobility
-      });
+    marker.on('mouseover', async (event: any) => {
+      try {
+        const weatherData = await this.getWeatherData(data.name);
+        const pollution = weatherData?.current?.humidity || 50;
+        
+        this.selectedLocation.set({
+          name: data.name,
+          temp: weatherData?.current?.temp_c ? `${weatherData.current.temp_c}°C` : '—',
+          pollution: pollution,
+          culture: 80,
+          mobility: 'Public Transport Available'
+        });
+      } catch (err) {
+        this.selectedLocation.set({
+          name: data.name,
+          temp: '—',
+          pollution: 50,
+          culture: 80,
+          mobility: 'Public Transport Available'
+        });
+      }
       
       // Position card at cursor location
       const clientX = event.originalEvent?.clientX || 0;
@@ -172,17 +154,101 @@ export class MapComponent implements OnInit {
 
     // Click event to open detail panel
     marker.on('click', () => {
+      this.loadLocationDetails(data.name, data.country, data.imageUrl);
+    });
+  }
+
+  private async loadLocationDetails(cityName: string, country: string, imageUrl: string) {
+    try {
+      // Fetch weather, air quality, bike data, and city image in parallel
+      const [weatherData, airQualityData, bikeData, cityImages] = await Promise.all([
+        this.getWeatherData(cityName),
+        this.getAirQualityData(cityName),
+        this.getBikeData(cityName),
+        this.apiService.getCityImages(cityName)
+      ]);
+
+      const now = new Date();
+      const date = now.toLocaleDateString('fr-FR', { weekday: 'short', month: 'short', day: 'numeric' });
+      const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+      const bikeInfo: BikeData | undefined = bikeData?.stations?.[0] ? {
+        status: 'Available',
+        available: bikeData.stations[0].free_bikes || 0,
+        closestStation: bikeData.stations[0].name || 'Unknown',
+        walkTime: '2 min'
+      } : undefined;
+
+      // Use first image from Unsplash API if available, otherwise use fallback
+      const finalImageUrl = cityImages && cityImages.length > 0 ? cityImages[0].urls.regular : imageUrl;
+
       this.panelLocation.set({
-        name: data.name,
-        country: data.country,
-        date: 'ven 10 oct',
-        time: '14:56',
-        imageUrl: data.imageUrl,
+        name: cityName,
+        country: country,
+        date: date,
+        time: time,
+        imageUrl: finalImageUrl,
         tab: 'bike',
-        bikeData: data.bikeData
+        weatherData: weatherData,
+        pollutionData: airQualityData,
+        bikeData: bikeInfo
       });
       this.panelOpen.set(true);
-    });
+    } catch (err) {
+      console.error('Error loading location details:', err);
+      // Fallback: show panel with partial data
+      this.panelLocation.set({
+        name: cityName,
+        country: country,
+        date: new Date().toLocaleDateString('fr-FR'),
+        time: new Date().toLocaleTimeString('fr-FR'),
+        imageUrl: imageUrl,
+        tab: 'bike'
+      });
+      this.panelOpen.set(true);
+    }
+  }
+
+  private async getWeatherData(city: string) {
+    if (this.weatherCache.has(city)) {
+      return this.weatherCache.get(city);
+    }
+    try {
+      const data = await this.apiService.getWeather(city);
+      this.weatherCache.set(city, data);
+      return data;
+    } catch (err) {
+      console.error('Weather fetch error:', err);
+      return null;
+    }
+  }
+
+  private async getAirQualityData(city: string) {
+    if (this.airQualityCache.has(city)) {
+      return this.airQualityCache.get(city);
+    }
+    try {
+      const data = await this.apiService.getAirQuality(city);
+      this.airQualityCache.set(city, data);
+      return data;
+    } catch (err) {
+      console.error('Air quality fetch error:', err);
+      return null;
+    }
+  }
+
+  private async getBikeData(city: string) {
+    if (this.bikeCache.has(city)) {
+      return this.bikeCache.get(city);
+    }
+    try {
+      const data = await this.apiService.getCityBikes(city);
+      this.bikeCache.set(city, data);
+      return data;
+    } catch (err) {
+      console.error('Bike data fetch error:', err);
+      return null;
+    }
   }
 
   onPanelClose() {
