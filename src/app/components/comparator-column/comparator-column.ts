@@ -1,5 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+export interface CityComparison {
+  city: string;
+  weather?: any;
+  airQuality?: any;
+  events?: any[];
+  bikes?: any;
+  images?: any[];
+}
 
 @Component({
   selector: 'app-comparator-column',
@@ -8,4 +17,6 @@ import { CommonModule } from '@angular/common';
   templateUrl: './comparator-column.html',
   styleUrl: './comparator-column.css'
 })
-export class ComparatorColumnComponent {}
+export class ComparatorColumnComponent {
+  @Input() data: CityComparison | null = null;
+}

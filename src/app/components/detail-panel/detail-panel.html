@@ -27,21 +27,62 @@
   <div class="content">
     <!-- Bike Section -->
     <div *ngIf="activeTab === 'bike'" class="section">
-      <div class="bike-section">
+      <div class="bike-section" *ngIf="location.bikeData">
         <div class="bike-icon">🚲</div>
-        <div class="status">{{ location.bikeData?.status || 'Available' }}</div>
-        <div class="subtext">{{ location.bikeData?.available || 15 }} bikes available at nearby stations</div>
+        <div class="status">{{ location.bikeData.status || 'Available' }}</div>
+        <div class="subtext">{{ location.bikeData.available || 0 }} bikes available at nearby stations</div>
         <div class="highlight-box">
-          Closest station: {{ location.bikeData?.closestStation || 'Market & 5th St' }} ({{ location.bikeData?.walkTime || '2 min' }} walk)
+          Closest station: {{ location.bikeData.closestStation || 'Unknown' }} ({{ location.bikeData.walkTime || '5 min' }} walk)
         </div>
+      </div>
+      <div *ngIf="!location.bikeData" class="section">
+        <p>No bike data available</p>
       </div>
     </div>
 
     <!-- Weather Section -->
     <div *ngIf="activeTab === 'weather'" class="section">
-      <div class="info-section">
-        <h3>Weather Information</h3>
-        <p>Weather details coming soon...</p>
+      <div class="info-section" *ngIf="location.weatherData">
+        <div class="weather-header">
+          <img 
+            *ngIf="location.weatherData.current?.condition?.icon" 
+            [src]="'https:' + location.weatherData.current.condition.icon" 
+            alt="Weather icon"
+            class="weather-icon">
+          <div class="weather-main">
+            <h3>{{ location.weatherData.current?.condition?.text || 'Unknown' }}</h3>
+            <p class="temperature">{{ location.weatherData.current?.temp_c || '—' }}°C</p>
+          </div>
+        </div>
+        <div class="weather-grid">
+          <div>
+            <p class="label">Feels Like</p>
+            <p class="value">{{ location.weatherData.current?.feelslike_c || '—' }}°C</p>
+          </div>
+          <div>
+            <p class="label">Humidity</p>
+            <p class="value">{{ location.weatherData.current?.humidity || '—' }}%</p>
+          </div>
+          <div>
+            <p class="label">Wind Speed</p>
+            <p class="value">{{ location.weatherData.current?.wind_kph || '—' }} km/h</p>
+          </div>
+          <div>
+            <p class="label">Wind Direction</p>
+            <p class="value">{{ location.weatherData.current?.wind_dir || '—' }}</p>
+          </div>
+          <div>
+            <p class="label">Visibility</p>
+            <p class="value">{{ location.weatherData.current?.vis_km || '—' }} km</p>
+          </div>
+          <div>
+            <p class="label">Timezone</p>
+            <p class="value">{{ location.weatherData.location?.tz_id || '—' }}</p>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!location.weatherData" class="info-section">
+        <p>Weather data loading...</p>
       </div>
     </div>
 
@@ -63,9 +104,46 @@
 
     <!-- Pollution Section -->
     <div *ngIf="activeTab === 'pollution'" class="section">
-      <div class="info-section">
-        <h3>Air Pollution</h3>
-        <p>Pollution data coming soon...</p>
+      <div class="info-section" *ngIf="location.pollutionData">
+        <div class="pollution-header">
+          <img 
+            src="/airQuality.png" 
+            alt="Air quality icon"
+            class="pollution-icon">
+          <div class="pollution-main">
+            <h3>Air Quality Index</h3>
+            <p class="aqi-value">{{ location.pollutionData.aqi || '—' }}</p>
+          </div>
+        </div>
+        <div class="pollution-grid">
+          <div>
+            <p class="label">PM2.5</p>
+            <p class="value">{{ location.pollutionData.pm25 || '—' }}</p>
+          </div>
+          <div>
+            <p class="label">PM10</p>
+            <p class="value">{{ location.pollutionData.pm10 || '—' }}</p>
+          </div>
+          <div>
+            <p class="label">NO₂</p>
+            <p class="value">{{ location.pollutionData.no2 || '—' }}</p>
+          </div>
+          <div>
+            <p class="label">CO</p>
+            <p class="value">{{ location.pollutionData.co || '—' }}</p>
+          </div>
+          <div>
+            <p class="label">O₃</p>
+            <p class="value">{{ location.pollutionData.o3 || '—' }}</p>
+          </div>
+          <div>
+            <p class="label">Dominant</p>
+            <p class="value">{{ location.pollutionData.dominentpol || '—' }}</p>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!location.pollutionData" class="info-section">
+        <p>Pollution data not available</p>
       </div>
     </div>
   </div>

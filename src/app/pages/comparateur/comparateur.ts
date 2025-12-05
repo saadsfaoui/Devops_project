@@ -11,4 +11,14 @@ import { ComparatorColumnComponent } from '../../components/comparator-column/co
   styleUrl: './comparateur.css'
 })
 export class ComparateurComponent {
+  city1Data: any = null;
+  city2Data: any = null;
+
+  onCity1DataChange(data: any) {
+    this.city1Data = data;
+  }
+
+  onCity2DataChange(data: any) {
+    this.city2Data = data;
+  }
 }

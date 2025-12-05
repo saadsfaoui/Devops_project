@@ -1,5 +1,26 @@
 <div class="selector-box">
-  <input placeholder="Choisir une ville" />
-  <button class="refresh">⟳</button>
-  <input placeholder="Choisir une ville" />
+  <div class="city-input-group">
+    <input 
+      placeholder="Choisir une ville" 
+      [(ngModel)]="city1"
+      (keydown.enter)="loadCity1()"
+      [disabled]="loading()"
+    />
+    <button (click)="loadCity1()" [disabled]="loading() || !city1()" class="load-btn">🔍</button>
+  </div>
+
+  <button class="refresh" (click)="compareSwitch()" [disabled]="loading() || !city1Data() || !city2Data()">⟳</button>
+
+  <div class="city-input-group">
+    <input 
+      placeholder="Choisir une ville" 
+      [(ngModel)]="city2"
+      (keydown.enter)="loadCity2()"
+      [disabled]="loading()"
+    />
+    <button (click)="loadCity2()" [disabled]="loading() || !city2()" class="load-btn">🔍</button>
+  </div>
 </div>
+
+<div *ngIf="error()" class="error-message">{{ error() }}</div>
+<div *ngIf="loading()" class="loading-message">Chargement des données...</div>

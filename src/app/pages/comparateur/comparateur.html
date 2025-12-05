@@ -1,9 +1,12 @@
 <div class="container">
   <h1 class="page-title">Comparateur Analytique</h1>
-  <app-comparator-selector></app-comparator-selector>
+  <app-comparator-selector 
+    (city1Changed)="onCity1DataChange($event)"
+    (city2Changed)="onCity2DataChange($event)">
+  </app-comparator-selector>
 
   <div class="grid">
-    <app-comparator-column></app-comparator-column>
-    <app-comparator-column></app-comparator-column>
+    <app-comparator-column [data]="city1Data"></app-comparator-column>
+    <app-comparator-column [data]="city2Data"></app-comparator-column>
   </div>
 </div>
