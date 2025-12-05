@@ -27,7 +27,18 @@
         placeholder="Search locations..."
         [value]="searchQuery()"
         (input)="onSearchChange($event.target.value)"
+        (keyup.escape)="clearSearch()"
+        (keyup.enter)="onSearchSubmit()"
       />
+      <div class="search-results" *ngIf="showSearchResults() && searchQuery()">
+        <div class="result-item" *ngIf="!searchResults().length">
+          <span class="no-results">No cities match your search</span>
+        </div>
+        <div class="result-item" *ngFor="let result of searchResults()" (click)="selectSearchResult(result)">
+          <span class="result-name">{{ result.name }}</span>
+          <span class="result-country">{{ result.country }}</span>
+        </div>
+      </div>
     </div>
 
     <!-- Nav Items -->

@@ -1,10 +1,12 @@
-import { Component, signal, OnInit, effect, ChangeDetectorRef } from '@angular/core';
+import { Component, signal, OnInit, effect, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { FlashService } from '../services/flash.service';
+import { SearchService } from '../services/search.service';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-navbar',
@@ -14,6 +16,8 @@ import { FlashService } from '../services/flash.service';
   styleUrl: './navbar.css'
 })
 export class NavbarComponent implements OnInit {
+  @Output() searchLocation = new EventEmitter<string>();
+  
   searchQuery = signal('');
   activeNav = signal('home');
   loggedIn = signal(false);
@@ -22,13 +26,22 @@ export class NavbarComponent implements OnInit {
   showProfileMenu = signal(false);
   flashMessage = signal('');
   flashType = signal<'success' | 'error' | ''>('');
+  searchResults = signal<Array<{name: string; country: string}>>([]);
+  showSearchResults = signal(false);
 
   constructor(
     private router: Router, 
     private auth: AuthService, 
     private flash: FlashService,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private searchService: SearchService,
+    private apiService: ApiService
+  ) {
+    // Listen to cities available in the search service
+    this.searchService.cities$.subscribe(cities => {
+      this.searchResults.set(cities);
+    });
+  }
 
   ngOnInit() {
     // Set active nav based on current route on init
@@ -156,7 +169,59 @@ export class NavbarComponent implements OnInit {
 
   onSearchChange(value: string) {
     this.searchQuery.set(value);
-    console.log('Search:', value);
+    
+    if (value.trim().length === 0) {
+      this.showSearchResults.set(false);
+      this.searchResults.set([]);
+      return;
+    }
+    
+    // Filter cities based on search query
+    const allCities = this.searchResults();
+    const filteredResults = allCities.filter(city =>
+      city.name.toLowerCase().includes(value.toLowerCase()) ||
+      city.country.toLowerCase().includes(value.toLowerCase())
+    );
+    
+    this.searchResults.set(filteredResults);
+    
+    // Emit search event to map component
+    this.searchLocation.emit(value);
+    this.showSearchResults.set(true);
+  }
+
+  selectSearchResult(result: {name: string; country: string}) {
+    this.searchQuery.set(result.name);
+    this.searchLocation.emit(result.name);
+    this.showSearchResults.set(false);
+  }
+
+  clearSearch() {
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+    this.showSearchResults.set(false);
+  }
+
+  async onSearchSubmit() {
+    const query = this.searchQuery().trim();
+    if (!query) return;
+
+    try {
+      // Try to fetch weather data to validate the city exists in the API
+      const weatherData = await this.apiService.getWeather(query);
+      
+      if (weatherData && weatherData.location) {
+        const city = weatherData.location;
+        // Emit search to map with the city name from API
+        this.searchService.performSearch(query);
+        // Close dropdown after selection
+        this.showSearchResults.set(false);
+      }
+    } catch (error) {
+      console.error('City not found:', error);
+      this.flashMessage.set(`City "${query}" not found. Please try another city.`);
+      this.flashType.set('error');
+    }
   }
 
   setActive(nav: string) {

@@ -1,10 +1,11 @@
-import { Component, OnInit, ViewChild, ElementRef, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, signal, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, Inject } from '@angular/core';
 import { LocationCardComponent, LocationData } from '../components/location-card/location-card';
 import { DetailPanelComponent, LocationDetail, BikeData } from '../components/detail-panel/detail-panel';
 import { ApiService } from '../services/api.service';
+import { SearchService } from '../services/search.service';
 
 @Component({
   selector: 'app-map',
@@ -25,14 +26,23 @@ export class MapComponent implements OnInit {
   panelOpen = signal(false);
   panelLocation = signal<LocationDetail | null>(null);
 
+  private hoveredMarkerData: any = null;
   private weatherCache: Map<string, any> = new Map();
   private airQualityCache: Map<string, any> = new Map();
   private bikeCache: Map<string, any> = new Map();
+  private allCities: Array<{lat: number; lng: number; name: string; country: string; imageUrl: string; marker?: any}> = [];
+  private searchHighlightMarker: any = null;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private apiService: ApiService
-  ) {}
+    private apiService: ApiService,
+    private searchService: SearchService
+  ) {
+    // Listen to search events from navbar
+    this.searchService.search$.subscribe(query => {
+      this.searchAndZoom(query);
+    });
+  }
 
   ngOnInit() {
     // Initialize default markers for major cities
@@ -47,6 +57,9 @@ export class MapComponent implements OnInit {
       { lat: 35.6762, lng: 139.6503, name: 'Tokyo', country: 'Japan', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Shibuya_Crossing%2C_Tokyo%2C_9_November_2019.jpg' },
       { lat: -33.8688, lng: 151.2093, name: 'Sydney', country: 'Australia', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a0/Opera_House_and_Harbour_Bridge.jpg' }
     ];
+    
+    // Store cities for search functionality
+    this.allCities = defaultCities;
     
     // Store for use after map initialization
     (window as any).defaultCities = defaultCities;
@@ -88,6 +101,9 @@ export class MapComponent implements OnInit {
       this.addMarker(L, data);
     });
 
+    // Notify search service of available cities
+    this.searchService.setCities(this.allCities.map(c => ({name: c.name, country: c.country})));
+
     // Update card position when map is panned or zoomed
     this.map.on('move', () => {
       this.updateCardPosition();
@@ -117,6 +133,12 @@ export class MapComponent implements OnInit {
 
     const marker = L.marker([data.lat, data.lng]).addTo(this.map);
     
+    // Store marker reference in cities array for search
+    const cityIndex = this.allCities.findIndex(c => c.name === data.name);
+    if (cityIndex !== -1) {
+      this.allCities[cityIndex].marker = marker;
+    }
+    
     marker.on('mouseover', async (event: any) => {
       try {
         const weatherData = await this.getWeatherData(data.name);
@@ -139,6 +161,9 @@ export class MapComponent implements OnInit {
         });
       }
       
+      // Store hovered marker data
+      this.hoveredMarkerData = data;
+      
       // Position card at cursor location
       const clientX = event.originalEvent?.clientX || 0;
       const clientY = event.originalEvent?.clientY || 0;
@@ -146,7 +171,7 @@ export class MapComponent implements OnInit {
       this.cardY.set(clientY - 150);
       this.cardVisible.set(true);
     });
-    
+
     marker.on('mouseout', () => {
       this.cardVisible.set(false);
       this.hoveredMarkerData = null;
@@ -257,5 +282,207 @@ export class MapComponent implements OnInit {
 
   onTabChange(tab: string) {
     console.log('Tab changed to:', tab);
+  }
+
+  searchAndZoom(query: string) {
+    const searchTerm = query.toLowerCase().trim();
+    
+    // Remove previous search marker
+    this.removeSearchMarker();
+    
+    // First try to find in default cities
+    const matchedCity = this.allCities.find(city => 
+      city.name.toLowerCase().includes(searchTerm) || 
+      city.country.toLowerCase().includes(searchTerm)
+    );
+
+    if (matchedCity && this.map) {
+      // Zoom to city and open detail panel
+      this.map.setView([matchedCity.lat, matchedCity.lng], 10);
+      
+      // Highlight the marker
+      if (matchedCity.marker) {
+        matchedCity.marker.openPopup?.();
+      }
+      
+      // Load location details
+      this.loadLocationDetails(matchedCity.name, matchedCity.country, matchedCity.imageUrl);
+    } else if (this.map) {
+      // If not in default cities, fetch from API and add to map
+      this.searchCityFromAPI(query);
+    }
+  }
+
+  private removeSearchMarker() {
+    if (this.searchHighlightMarker && this.map) {
+      this.map.removeLayer(this.searchHighlightMarker);
+      this.searchHighlightMarker = null;
+    }
+  }
+
+  private async searchCityFromAPI(cityName: string) {
+    try {
+      const weatherData = await this.apiService.getWeather(cityName);
+      
+      if (weatherData && weatherData.location) {
+        const location = weatherData.location;
+        
+        // Zoom to the city coordinates
+        this.map.setView([location.lat, location.lon], 10);
+        
+        // Add a highlighted marker for the searched city
+        this.addSearchMarker(location.lat, location.lon, location.name);
+        
+        // Fetch all necessary data for the detail panel
+        const [airQualityData, bikeData, cityImages] = await Promise.all([
+          this.getAirQualityData(cityName),
+          this.getBikeData(cityName),
+          this.apiService.getCityImages(cityName)
+        ]);
+
+        // Set the detail panel with the fetched data
+        const finalImageUrl = cityImages && cityImages.length > 0 ? cityImages[0].urls.regular : 'https://via.placeholder.com/800x400?text=' + cityName;
+
+        const now = new Date();
+        const date = now.toLocaleDateString('fr-FR', { weekday: 'short', month: 'short', day: 'numeric' });
+        const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        const bikeInfo: BikeData | undefined = bikeData?.stations?.[0] ? {
+          status: 'Available',
+          available: bikeData.stations[0].free_bikes || 0,
+          closestStation: bikeData.stations[0].name || 'Unknown',
+          walkTime: '2 min'
+        } : undefined;
+
+        this.panelLocation.set({
+          name: location.name,
+          country: location.country,
+          date: date,
+          time: time,
+          imageUrl: finalImageUrl,
+          tab: 'bike',
+          weatherData: weatherData,
+          pollutionData: airQualityData,
+          bikeData: bikeInfo
+        });
+        this.panelOpen.set(true);
+      }
+    } catch (error) {
+      console.error('Error searching city from API:', error);
+    }
+  }
+
+  private async addSearchMarker(lat: number, lng: number, cityName: string) {
+    if (!this.map) return;
+
+    // Dynamically import Leaflet
+    const L = await import('leaflet');
+
+    // Remove previous search marker
+    this.removeSearchMarker();
+
+    // Create a custom icon for search result (different color/style)
+    const searchIcon = L.icon({
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
+    // Add the marker to the map
+    this.searchHighlightMarker = L.marker([lat, lng], { icon: searchIcon })
+      .addTo(this.map)
+      .bindPopup(`<b>${cityName}</b>`);
+
+    // Add hover functionality to search marker
+    this.searchHighlightMarker.on('mouseover', async (event: any) => {
+      try {
+        const weatherData = await this.getWeatherData(cityName);
+        const pollution = weatherData?.current?.humidity || 50;
+        
+        this.selectedLocation.set({
+          name: cityName,
+          temp: weatherData?.current?.temp_c ? `${weatherData.current.temp_c}°C` : '—',
+          pollution: pollution,
+          culture: 80,
+          mobility: 'Public Transport Available'
+        });
+      } catch (err) {
+        this.selectedLocation.set({
+          name: cityName,
+          temp: '—',
+          pollution: 50,
+          culture: 80,
+          mobility: 'Public Transport Available'
+        });
+      }
+      
+      // Store hovered marker data
+      this.hoveredMarkerData = { name: cityName, lat, lng };
+      
+      // Position card at cursor location
+      const clientX = event.originalEvent?.clientX || 0;
+      const clientY = event.originalEvent?.clientY || 0;
+      this.cardX.set(clientX + 15);
+      this.cardY.set(clientY - 150);
+      this.cardVisible.set(true);
+    });
+
+    this.searchHighlightMarker.on('mouseout', () => {
+      this.cardVisible.set(false);
+      this.hoveredMarkerData = null;
+    });
+
+    // Add click functionality to open detail panel
+    this.searchHighlightMarker.on('click', async () => {
+      try {
+        const weatherData = await this.apiService.getWeather(cityName);
+        if (weatherData && weatherData.location) {
+          const location = weatherData.location;
+          
+          // Fetch all necessary data for the detail panel
+          const [airQualityData, bikeData, cityImages] = await Promise.all([
+            this.getAirQualityData(cityName),
+            this.getBikeData(cityName),
+            this.apiService.getCityImages(cityName)
+          ]);
+
+          // Set the detail panel with the fetched data
+          const finalImageUrl = cityImages && cityImages.length > 0 ? cityImages[0].urls.regular : 'https://via.placeholder.com/800x400?text=' + cityName;
+
+          const now = new Date();
+          const date = now.toLocaleDateString('fr-FR', { weekday: 'short', month: 'short', day: 'numeric' });
+          const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+          const bikeInfo: BikeData | undefined = bikeData?.stations?.[0] ? {
+            status: 'Available',
+            available: bikeData.stations[0].free_bikes || 0,
+            closestStation: bikeData.stations[0].name || 'Unknown',
+            walkTime: '2 min'
+          } : undefined;
+
+          this.panelLocation.set({
+            name: location.name,
+            country: location.country,
+            date: date,
+            time: time,
+            imageUrl: finalImageUrl,
+            tab: 'bike',
+            weatherData: weatherData,
+            pollutionData: airQualityData,
+            bikeData: bikeInfo
+          });
+          this.panelOpen.set(true);
+        }
+      } catch (error) {
+        console.error('Error opening detail panel:', error);
+      }
+    });
+
+    // Open popup
+    this.searchHighlightMarker.openPopup();
   }
 }

@@ -240,3 +240,56 @@
     display: none;
   }
 }
+
+/* Search Results */
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(4, 68, 76, 0.95);
+  border: 1px solid #91935D;
+  border-top: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: -1px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.result-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(145, 147, 93, 0.2);
+  transition: background 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.result-item:hover {
+  background: rgba(180, 220, 226, 0.15);
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-name {
+  color: #B4DCE2;
+  font-weight: 500;
+}
+
+.result-country {
+  color: #91935D;
+  font-size: 0.85rem;
+}
+
+.no-results {
+  color: #91935D;
+  font-style: italic;
+  padding: 0.75rem 1rem;
+}
+
