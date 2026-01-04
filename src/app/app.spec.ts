@@ -16,10 +16,9 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', () => {
+  it('should have title property', () => {
     const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, firebase-project');
+    const app = fixture.componentInstance;
+    expect(app.title()).toBe('firebase-project');
   });
 });

@@ -2,5 +2,12 @@
   display: flex;
   width: 100%;
   flex: 1;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
+}
+
+app-map {
+  flex: 1;
+  min-height: 0;
 }

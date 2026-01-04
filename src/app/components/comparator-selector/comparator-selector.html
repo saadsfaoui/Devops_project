@@ -2,7 +2,8 @@
   <div class="city-input-group">
     <input 
       placeholder="Choisir une ville" 
-      [(ngModel)]="city1"
+      [ngModel]="city1()"
+      (ngModelChange)="city1.set($event)"
       (keydown.enter)="loadCity1()"
       [disabled]="loading()"
     />
@@ -14,7 +15,8 @@
   <div class="city-input-group">
     <input 
       placeholder="Choisir une ville" 
-      [(ngModel)]="city2"
+      [ngModel]="city2()"
+      (ngModelChange)="city2.set($event)"
       (keydown.enter)="loadCity2()"
       [disabled]="loading()"
     />

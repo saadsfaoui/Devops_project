@@ -12,7 +12,8 @@
         <input
           id="email"
           type="email"
-          [(ngModel)]="email"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
           name="email"
           required
           [disabled]="isLoading()"
@@ -24,7 +25,8 @@
         <input
           id="password"
           type="password"
-          [(ngModel)]="password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
           name="password"
           required
           [disabled]="isLoading()"
@@ -36,7 +38,8 @@
         <input
           id="confirmPassword"
           type="password"
-          [(ngModel)]="confirmPassword"
+          [ngModel]="confirmPassword()"
+          (ngModelChange)="confirmPassword.set($event)"
           name="confirmPassword"
           required
           [disabled]="isLoading()"

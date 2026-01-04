@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, user, User, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider, signInWithPopup } from '@angular/fire/auth';
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, user, User, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider, signInWithPopup, onAuthStateChanged } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -51,5 +51,15 @@ export class AuthService {
   // Get current user
   getCurrentUser() {
     return this.auth.currentUser;
+  }
+
+  // Wait for auth state to be ready
+  waitForAuthState(): Promise<User | null> {
+    return new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(this.auth, (user) => {
+        unsubscribe();
+        resolve(user);
+      });
+    });
   }
 }

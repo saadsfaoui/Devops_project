@@ -5,7 +5,6 @@ import { PLATFORM_ID, Inject } from '@angular/core';
 import { LocationCardComponent, LocationData } from '../components/location-card/location-card';
 import { DetailPanelComponent, LocationDetail, BikeData } from '../components/detail-panel/detail-panel';
 import { ApiService } from '../services/api.service';
-import { SearchService } from '../services/search.service';
 
 @Component({
   selector: 'app-map',
@@ -74,8 +73,9 @@ export class MapComponent implements OnInit {
   private async initializeMap() {
     if (!this.mapContainer) return;
 
-    // Dynamically import Leaflet only on browser
-    const L = await import('leaflet');
+    try {
+      // Dynamically import Leaflet only on browser
+      const { default: L } = await import('leaflet');
 
     // Fix Leaflet icon issue
     delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -121,14 +121,18 @@ export class MapComponent implements OnInit {
       }
     });
 
-    this.isLoading.set(false);
+      this.isLoading.set(false);
+    } catch (error) {
+      console.error('Failed to initialize Leaflet map:', error);
+      this.isLoading.set(false);
+    }
   }
 
   private updateCardPosition() {
     // No longer needed with cursor-based positioning
   }
 
-  private addMarker(L: any, data: any) {
+  private addMarker(L: any, data: MarkerData) {
     if (!this.map) return;
 
     const marker = L.marker([data.lat, data.lng]).addTo(this.map);
