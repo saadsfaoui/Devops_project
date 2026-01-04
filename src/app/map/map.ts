@@ -5,6 +5,19 @@ import { PLATFORM_ID, Inject } from '@angular/core';
 import { LocationCardComponent, LocationData } from '../components/location-card/location-card';
 import { DetailPanelComponent, LocationDetail, BikeData } from '../components/detail-panel/detail-panel';
 import { ApiService } from '../services/api.service';
+import { SearchService } from '../services/search.service';
+
+interface MarkerData {
+  lat: number;
+  lng: number;
+  name: string;
+  temp?: string;
+  pollution?: number;
+  culture?: number;
+  mobility?: string;
+  imageUrl: string;
+  country: string;
+}
 
 @Component({
   selector: 'app-map',
