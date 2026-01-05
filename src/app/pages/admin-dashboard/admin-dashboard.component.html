@@ -1,0 +1,182 @@
+<div class="admin-dashboard">
+  <header class="dashboard-header">
+    <h1>Admin Dashboard</h1>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </header>
+
+  <nav class="dashboard-nav">
+    <button 
+      [class.active]="selectedTab() === 'overview'" 
+      (click)="selectTab('overview')">
+      Overview
+    </button>
+    <button 
+      [class.active]="selectedTab() === 'users'" 
+      (click)="selectTab('users')">
+      Users Management
+    </button>
+    <button 
+      [class.active]="selectedTab() === 'cities'" 
+      (click)="selectTab('cities')">
+      City Statistics
+    </button>
+  </nav>
+
+  <div class="dashboard-content">
+    @if (loading()) {
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading dashboard data...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error">
+        <p>{{ error() }}</p>
+        <button (click)="loadDashboardData()">Retry</button>
+      </div>
+    } @else {
+      <!-- Overview Tab -->
+      @if (selectedTab() === 'overview') {
+        <div class="overview-section">
+          <h2>Statistics Overview</h2>
+          
+          @if (userStats()) {
+            <div class="stats-grid">
+              <div class="stat-card">
+                <h3>Total Users</h3>
+                <p class="stat-value">{{ userStats()!.totalUsers }}</p>
+              </div>
+
+              <div class="stat-card">
+                <h3>Users by Gender</h3>
+                <div class="stat-breakdown">
+                  @for (sex of getObjectKeys(userStats()!.usersBySex); track sex) {
+                    <div class="stat-item">
+                      <span class="label">{{ sex }}:</span>
+                      <span class="value">{{ userStats()!.usersBySex[sex] }}</span>
+                      <span class="percentage">
+                        ({{ ((userStats()!.usersBySex[sex] / userStats()!.totalUsers) * 100).toFixed(1) }}%)
+                      </span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <h3>Users by Age Group</h3>
+                <div class="stat-breakdown">
+                  @for (ageGroup of getObjectKeys(userStats()!.usersByAge); track ageGroup) {
+                    <div class="stat-item">
+                      <span class="label">{{ ageGroup }}:</span>
+                      <span class="value">{{ userStats()!.usersByAge[ageGroup] }}</span>
+                      <span class="percentage">
+                        ({{ ((userStats()!.usersByAge[ageGroup] / userStats()!.totalUsers) * 100).toFixed(1) }}%)
+                      </span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <h3>Top Liked Cities</h3>
+                <div class="stat-breakdown">
+                  @for (city of cityStats().slice(0, 5); track city.cityName) {
+                    <div class="stat-item">
+                      <span class="label">{{ city.cityName }}, {{ city.country }}:</span>
+                      <span class="value">
+                        {{ city.likeCount }} likes
+                        @if (city.averageRating) {
+                          <span class="rating-badge">★ {{ city.averageRating }}</span>
+                        }
+                      </span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Users Management Tab -->
+      @if (selectedTab() === 'users') {
+        <div class="users-section">
+          <h2>Users Management</h2>
+          <p class="users-count">Total: {{ allUsers().length }} users</p>
+          
+          <div class="users-table-container">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Gender</th>
+                  <th>Age</th>
+                  <th>Status</th>
+                  <th>Created At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (user of allUsers(); track user.id) {
+                  <tr [class.disabled-user]="user.disabled">
+                    <td>{{ user.firstName }} {{ user.lastName }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.sexe }}</td>
+                    <td>{{ calculateAge(user.birthDate) }}</td>
+                    <td>
+                      <span [class.status-badge]="true" [class.status-disabled]="user.disabled" [class.status-active]="!user.disabled">
+                        {{ user.disabled ? 'Disabled' : 'Active' }}
+                      </span>
+                    </td>
+                    <td>{{ getCreatedAtDate(user.createdAt) | date:'short' }}</td>
+                    <td>
+                      <div class="action-buttons">
+                        <button 
+                          [class.disable-btn]="!user.disabled"
+                          [class.enable-btn]="user.disabled"
+                          (click)="toggleUserStatus(user.id, user.firstName + ' ' + user.lastName, user.disabled || false)">
+                          {{ user.disabled ? 'Enable' : 'Disable' }}
+                        </button>
+                        <button 
+                          class="delete-btn"
+                          (click)="deleteUser(user.id, user.firstName + ' ' + user.lastName)">
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- City Statistics Tab -->
+      @if (selectedTab() === 'cities') {
+        <div class="cities-section">
+          <h2>City Statistics</h2>
+          <p class="cities-count">Total cities liked: {{ cityStats().length }}</p>
+          
+          <div class="cities-grid">
+            @for (city of cityStats(); track city.cityName) {
+              <div class="city-card">
+                <h3>{{ city.cityName }}</h3>
+                <p class="country">{{ city.country }}</p>
+                <p class="likes">❤️ {{ city.likeCount }} {{ city.likeCount === 1 ? 'like' : 'likes' }}</p>
+                @if (city.averageRating && city.totalRatings) {
+                  <div class="rating-info">
+                    <span class="rating-stars">★ {{ city.averageRating }}/5</span>
+                    <span class="rating-count">({{ city.totalRatings }} {{ city.totalRatings === 1 ? 'rating' : 'ratings' }})</span>
+                  </div>
+                } @else {
+                  <p class="no-ratings">No ratings yet</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

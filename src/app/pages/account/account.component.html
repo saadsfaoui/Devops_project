@@ -1,0 +1,123 @@
+<div class="account-container">
+  <div class="account-card">
+    <div class="header">
+      <h2>My Account</h2>
+      <button class="back-button" (click)="goBack()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </button>
+    </div>
+    
+    @if (errorMessage()) {
+      <div class="error-message">{{ errorMessage() }}</div>
+    }
+
+    @if (successMessage()) {
+      <div class="success-message">{{ successMessage() }}</div>
+    }
+
+    @if (isLoading() && !isEditing()) {
+      <div class="loading">Loading profile...</div>
+    } @else {
+      <form (ngSubmit)="onUpdateProfile()">
+        <div class="form-section">
+          <h3>Personal Information</h3>
+          
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input
+              id="firstName"
+              type="text"
+              [ngModel]="firstName()"
+              (ngModelChange)="firstName.set($event)"
+              name="firstName"
+              required
+              [disabled]="!isEditing()"
+              [readonly]="!isEditing()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input
+              id="lastName"
+              type="text"
+              [ngModel]="lastName()"
+              (ngModelChange)="lastName.set($event)"
+              name="lastName"
+              required
+              [disabled]="!isEditing()"
+              [readonly]="!isEditing()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="birthDate">Birth Date</label>
+            <input
+              id="birthDate"
+              type="date"
+              [ngModel]="birthDate()"
+              (ngModelChange)="birthDate.set($event)"
+              name="birthDate"
+              required
+              [disabled]="!isEditing()"
+              [readonly]="!isEditing()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="sexe">Gender</label>
+            <select
+              id="sexe"
+              [ngModel]="sexe()"
+              (ngModelChange)="sexe.set($event)"
+              name="sexe"
+              required
+              [disabled]="!isEditing()"
+            >
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Account Information</h3>
+          
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              [ngModel]="email()"
+              name="email"
+              disabled
+              readonly
+              class="readonly-field"
+            />
+            <small class="field-hint">Email cannot be changed</small>
+          </div>
+        </div>
+
+        <div class="button-group">
+          @if (!isEditing()) {
+            <button type="button" class="btn-edit" (click)="toggleEdit()">
+              Edit Profile
+            </button>
+          } @else {
+            <button type="submit" class="btn-save" [disabled]="isLoading()">
+              {{ isLoading() ? 'Saving...' : 'Save Changes' }}
+            </button>
+            <button type="button" class="btn-cancel" (click)="cancelEdit()" [disabled]="isLoading()">
+              Cancel
+            </button>
+          }
+        </div>
+      </form>
+    }
+  </div>
+</div>

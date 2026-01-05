@@ -8,6 +8,7 @@ import { AuthService } from '../services/auth.service';
 import { FlashService } from '../services/flash.service';
 import { SearchService } from '../services/search.service';
 import { ApiService } from '../services/api.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-navbar',
@@ -25,6 +26,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   profileUrl = signal<string | null>(null);
   userInitial = signal<string>('');
   showProfileMenu = signal(false);
+  isAdmin = signal(false);
   flashMessage = signal('');
   flashType = signal<'success' | 'error' | ''>('');
   searchResults = signal<Array<{name: string; country: string}>>([]);
@@ -77,10 +79,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
       console.log('🔔 AUTH STATE CHANGE', user ? 'User logged in' : 'User logged out');
       if (user) {
         this.loggedIn.set(true);
+        this.isAdmin.set(user.email === environment.adminEmail);
         this.updateUserProfile(user);
         this.cdr.markForCheck();
       } else {
         this.loggedIn.set(false);
+        this.isAdmin.set(false);
         this.profileUrl.set(null);
         this.userInitial.set('');
         this.cdr.markForCheck();
@@ -153,13 +157,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
   goAccount(event?: MouseEvent) {
     if (event) event.stopPropagation();
     this.showProfileMenu.set(false);
-    this.router.navigate(['/register']);
+    this.router.navigate(['/account']);
   }
 
   private updateActiveNav() {
     const url = this.router.url;
     if (url.includes('voyager')) {
       this.activeNav.set('voyager');
+    } else if (url.includes('favourites')) {
+      this.activeNav.set('favourites');
     } else if (url.includes('explore') || url.includes('comparateur')) {
       this.activeNav.set('explore');
     } else {

@@ -17,11 +17,21 @@ export class RegisterComponent {
   email = signal('');
   password = signal('');
   confirmPassword = signal('');
+  firstName = signal('');
+  lastName = signal('');
+  birthDate = signal('');
+  sexe = signal('');
   errorMessage = signal('');
   isLoading = signal(false);
 
   async onRegister() {
     this.errorMessage.set('');
+
+    // Validate required fields
+    if (!this.firstName() || !this.lastName() || !this.birthDate() || !this.sexe()) {
+      this.errorMessage.set('Please fill in all required fields.');
+      return;
+    }
 
     if (this.password() !== this.confirmPassword()) {
       this.errorMessage.set('Passwords do not match.');
@@ -36,12 +46,21 @@ export class RegisterComponent {
     this.isLoading.set(true);
 
     try {
-      await this.authService.register(this.email(), this.password());
+      await this.authService.register(
+        this.email(), 
+        this.password(),
+        {
+          firstName: this.firstName(),
+          lastName: this.lastName(),
+          birthDate: this.birthDate(),
+          sexe: this.sexe()
+        }
+      );
       // Wait for auth state to be confirmed
       await this.authService.waitForAuthState();
       // Small additional delay to ensure navbar subscription processes the update
       await new Promise(resolve => setTimeout(resolve, 50));
-      this.router.navigate(['/home']);
+      this.router.navigate(['/explore']);
     } catch (error: any) {
       this.errorMessage.set(this.getErrorMessage(error.code));
     } finally {

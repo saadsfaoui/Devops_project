@@ -43,10 +43,23 @@ export class LoginComponent {
     this.errorMessage.set('');
 
     try {
-      await this.authService.loginWithGoogle();
+      const userCredential = await this.authService.loginWithGoogle();
+      console.log('Google login successful, user:', userCredential.user.uid);
       this.flash.show('Logged in successfully', 'success', 2500);
-      this.router.navigate(['/explore']);
+      
+      // Check if profile is complete
+      const isComplete = await this.authService.isProfileComplete(userCredential.user.uid);
+      console.log('Profile complete:', isComplete);
+      
+      if (isComplete) {
+        console.log('Navigating to /explore');
+        this.router.navigate(['/explore']);
+      } else {
+        console.log('Navigating to /profile-setup');
+        this.router.navigate(['/profile-setup']);
+      }
     } catch (error: any) {
+      console.error('Google login error:', error);
       this.errorMessage.set(this.getErrorMessage(error.code));
     } finally {
       this.isGoogleLoading.set(false);

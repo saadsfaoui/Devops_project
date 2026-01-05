@@ -67,6 +67,15 @@
       >
         Voyager
       </button>
+      <button
+        *ngIf="loggedIn()"
+        class="nav-item"
+        [class.active]="activeNav() === 'favourites'"
+        routerLink="/favourites"
+        (click)="setActive('favourites')"
+      >
+        Favourites
+      </button>
     </div>
 
     <!-- Auth Actions -->
@@ -88,6 +97,7 @@
 
         <div class="profile-menu" *ngIf="showProfileMenu()" (click)="$event.stopPropagation()">
           <a class="menu-item" (click)="goAccount($event)">Account</a>
+          <a class="menu-item" *ngIf="isAdmin()" routerLink="/admin" (click)="showProfileMenu.set(false)">Admin Dashboard</a>
           <a class="menu-item" (click)="signOut()">Sign out</a>
         </div>
       </div>

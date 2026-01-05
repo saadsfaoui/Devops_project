@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    // Note: Update this email to match environment.adminEmail when deploying
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@earthvibes.com';
+    }
+    
+    // Users collection - users can read/write their own profile, admin can read all
+    match /users/{userId} {
+      // Allow admin to read all users
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      
+      // Allow users to create their own profile during registration
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow admin to update any user, or users to update their own profile
+      allow update: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      
+      // Allow admin to delete any user, or users to delete their own profile
+      allow delete: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+    }
+    
+    // Favourites collection - users can only read/write their own favourites, admin can read/delete all
+    match /favourites/{favouriteId} {
+      // Allow admin to read all favourites, or users to read their own
+      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      
+      // Allow users to create favourites if they're authenticated and setting their own userId
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Allow users to update their own favourites
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // Allow admin to delete any favourite, or users to delete their own
+      allow delete: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

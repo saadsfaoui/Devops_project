@@ -8,7 +8,63 @@
 
     <form (ngSubmit)="onRegister()">
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="firstName">First Name *</label>
+        <input
+          id="firstName"
+          type="text"
+          [ngModel]="firstName()"
+          (ngModelChange)="firstName.set($event)"
+          name="firstName"
+          required
+          [disabled]="isLoading()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="lastName">Last Name *</label>
+        <input
+          id="lastName"
+          type="text"
+          [ngModel]="lastName()"
+          (ngModelChange)="lastName.set($event)"
+          name="lastName"
+          required
+          [disabled]="isLoading()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="birthDate">Birth Date *</label>
+        <input
+          id="birthDate"
+          type="date"
+          [ngModel]="birthDate()"
+          (ngModelChange)="birthDate.set($event)"
+          name="birthDate"
+          required
+          [disabled]="isLoading()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="sexe">Gender *</label>
+        <select
+          id="sexe"
+          [ngModel]="sexe()"
+          (ngModelChange)="sexe.set($event)"
+          name="sexe"
+          required
+          [disabled]="isLoading()"
+        >
+          <option value="">Select Gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email *</label>
         <input
           id="email"
           type="email"
@@ -21,7 +77,7 @@
       </div>
 
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="password">Password *</label>
         <input
           id="password"
           type="password"
@@ -34,7 +90,7 @@
       </div>
 
       <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
+        <label for="confirmPassword">Confirm Password *</label>
         <input
           id="confirmPassword"
           type="password"

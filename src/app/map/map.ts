@@ -196,11 +196,11 @@ export class MapComponent implements OnInit {
 
     // Click event to open detail panel
     marker.on('click', () => {
-      this.loadLocationDetails(data.name, data.country, data.imageUrl);
+      this.loadLocationDetails(data.name, data.country, data.imageUrl, data.lat, data.lng);
     });
   }
 
-  private async loadLocationDetails(cityName: string, country: string, imageUrl: string) {
+  private async loadLocationDetails(cityName: string, country: string, imageUrl: string, latitude: number, longitude: number) {
     try {
       // Fetch weather, air quality, bike data, and city image in parallel
       const [weatherData, airQualityData, bikeData, cityImages] = await Promise.all([
@@ -233,7 +233,9 @@ export class MapComponent implements OnInit {
         tab: 'bike',
         weatherData: weatherData,
         pollutionData: airQualityData,
-        bikeData: bikeInfo
+        bikeData: bikeInfo,
+        latitude: latitude,
+        longitude: longitude
       });
       this.panelOpen.set(true);
     } catch (err) {
@@ -245,7 +247,9 @@ export class MapComponent implements OnInit {
         date: new Date().toLocaleDateString('fr-FR'),
         time: new Date().toLocaleTimeString('fr-FR'),
         imageUrl: imageUrl,
-        tab: 'bike'
+        tab: 'bike',
+        latitude: latitude,
+        longitude: longitude
       });
       this.panelOpen.set(true);
     }
@@ -323,7 +327,7 @@ export class MapComponent implements OnInit {
       }
       
       // Load location details
-      this.loadLocationDetails(matchedCity.name, matchedCity.country, matchedCity.imageUrl);
+      this.loadLocationDetails(matchedCity.name, matchedCity.country, matchedCity.imageUrl, matchedCity.lat, matchedCity.lng);
     } else if (this.map) {
       // If not in default cities, fetch from API and add to map
       this.searchCityFromAPI(query);
@@ -380,7 +384,9 @@ export class MapComponent implements OnInit {
           tab: 'bike',
           weatherData: weatherData,
           pollutionData: airQualityData,
-          bikeData: bikeInfo
+          bikeData: bikeInfo,
+          latitude: location.lat,
+          longitude: location.lon
         });
         this.panelOpen.set(true);
       }
@@ -501,5 +507,65 @@ export class MapComponent implements OnInit {
 
     // Open popup
     this.searchHighlightMarker.openPopup();
+  }
+
+  // Public method to open city detail from external components
+  async openCityDetail(cityName: string, country: string, lat: number, lon: number) {
+    if (!this.map) return;
+
+    // Zoom to the city
+    this.map.setView([lat, lon], 10);
+
+    // Check if city exists in default cities
+    const existingCity = this.allCities.find(c => 
+      c.name.toLowerCase() === cityName.toLowerCase()
+    );
+
+    if (existingCity) {
+      // Load details for existing city
+      this.loadLocationDetails(existingCity.name, existingCity.country, existingCity.imageUrl, existingCity.lat, existingCity.lng);
+    } else {
+      // Fetch and load details for new city
+      try {
+        const [weatherData, airQualityData, bikeData, cityImages] = await Promise.all([
+          this.getWeatherData(cityName),
+          this.getAirQualityData(cityName),
+          this.getBikeData(cityName),
+          this.apiService.getCityImages(cityName)
+        ]);
+
+        const now = new Date();
+        const date = now.toLocaleDateString('fr-FR', { weekday: 'short', month: 'short', day: 'numeric' });
+        const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        const bikeInfo: BikeData | undefined = bikeData?.stations?.[0] ? {
+          status: 'Available',
+          available: bikeData.stations[0].free_bikes || 0,
+          closestStation: bikeData.stations[0].name || 'Unknown',
+          walkTime: '2 min'
+        } : undefined;
+
+        const finalImageUrl = cityImages && cityImages.length > 0 ? 
+          cityImages[0].urls.regular : 
+          'https://via.placeholder.com/800x400?text=' + cityName;
+
+        this.panelLocation.set({
+          name: cityName,
+          country: country,
+          date: date,
+          time: time,
+          imageUrl: finalImageUrl,
+          tab: 'bike',
+          weatherData: weatherData,
+          pollutionData: airQualityData,
+          bikeData: bikeInfo,
+          latitude: lat,
+          longitude: lon
+        });
+        this.panelOpen.set(true);
+      } catch (error) {
+        console.error('Error opening city detail:', error);
+      }
+    }
   }
 }

@@ -7,8 +7,38 @@
     <a class="compare-btn" [routerLink]="['/comparateur']" [queryParams]="{city: location.name}" title="Comparer">
       ↔
     </a>
+    <button 
+      class="favourite-btn" 
+      (click)="toggleFavourite($event)"
+      [disabled]="isTogglingFavourite()"
+      [class.is-favourite]="isFavourite()"
+      [title]="isFavourite() ? 'Remove from favourites' : 'Add to favourites'"
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" [attr.fill]="isFavourite() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+      </svg>
+    </button>
     <div class="city-title">{{ location.name }}</div>
     <div class="city-subtitle">{{ location.country }} · {{ location.date }} · {{ location.time }}</div>
+    
+    <!-- Rating Section -->
+    <div class="rating-container" *ngIf="isFavourite()" (click)="$event.stopPropagation()">
+      <div class="rating-stars">
+        <button 
+          *ngFor="let star of getRatingArray()" 
+          class="star-button"
+          [class.filled]="currentRating() && star <= currentRating()!"
+          [class.empty]="!currentRating() || star > currentRating()!"
+          [disabled]="isUpdatingRating()"
+          (click)="updateRating(star, $event)"
+          title="Rate {{ star }} star{{ star > 1 ? 's' : '' }}"
+        >
+          ★
+        </button>
+      </div>
+      <span class="rating-label" *ngIf="currentRating()">{{ currentRating() }}/5</span>
+      <span class="rating-label no-rating" *ngIf="!currentRating()">Rate this city</span>
+    </div>
   </div>
 
   <!-- TABS -->

@@ -1,0 +1,117 @@
+<div class="favourites-container">
+  <div class="favourites-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <svg class="title-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        My Favourites
+      </h1>
+      <p class="page-subtitle">Cities you've saved for later</p>
+      <br><br>
+      <p>{{ favourites().length }} {{ favourites().length === 1 ? 'city' : 'cities' }} in your favourites</p>
+    </div>
+    
+  </div>
+  
+
+  <div class="favourites-content">
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="loading()">
+      <div class="spinner"></div>
+      <p class="loading-text">Loading your favourites...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loading() && favourites().length === 0">
+      <svg class="empty-icon" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+      </svg>
+      <h2 class="empty-title">No favourites yet</h2>
+      <p class="empty-description">Start exploring and add cities to your favourites!</p>
+      <a class="explore-button" routerLink="/explore">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="10 8 16 12 10 16 10 8"></polygon>
+        </svg>
+        Start Exploring
+      </a>
+    </div>
+
+    <!-- Favourites Grid -->
+    <div class="favourites-grid" *ngIf="!loading() && favourites().length > 0">
+      <div class="favourite-card" *ngFor="let favourite of favourites()" (click)="viewOnMap(favourite)">
+        <!-- City Image -->
+        <div class="card-image" [style.background-image]="'url(' + getCityImage(favourite.cityName) + ')'">
+          <button 
+            class="remove-button" 
+            (click)="removeFavourite(favourite, $event)"
+            [disabled]="removingId() === favourite.id"
+            title="Remove from favourites"
+          >
+            <svg 
+              *ngIf="removingId() !== favourite.id" 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="currentColor"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <div *ngIf="removingId() === favourite.id" class="mini-spinner"></div>
+          </button>
+        </div>
+        
+        <div class="card-content">
+          <h3 class="city-name">{{ favourite.cityName }}</h3>
+          <p class="country-name">{{ favourite.country }}</p>
+          
+          <div class="coordinates">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span class="coordinate">
+              {{ favourite.latitude.toFixed(2) }}°, {{ favourite.longitude.toFixed(2) }}°
+            </span>
+          </div>
+
+          <!-- Rating Section -->
+          <div class="rating-section" (click)="$event.stopPropagation()">
+            <div class="rating-stars">
+              <button 
+                *ngFor="let star of getRatingArray()" 
+                class="star-button"
+                [class.filled]="favourite.rating && star <= favourite.rating"
+                [class.empty]="!favourite.rating || star > favourite.rating"
+                [disabled]="updatingRating() === favourite.id"
+                (click)="updateRating(favourite, star, $event)"
+                title="Rate {{ star }} star{{ star > 1 ? 's' : '' }}"
+              >
+                ★
+              </button>
+            </div>
+            <span class="rating-text" *ngIf="favourite.rating">
+              {{ favourite.rating }}/5
+            </span>
+            <span class="rating-text no-rating" *ngIf="!favourite.rating">
+              Not rated
+            </span>
+          </div>
+
+          <div class="card-footer">
+            <span class="added-date">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              {{ formatDate(favourite.createdAt) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+  </div>
+</div>

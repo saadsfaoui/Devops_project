@@ -1,0 +1,116 @@
+<div class="profile-setup-container">
+  <div class="profile-setup-card">
+    <div class="header">
+      <h1>Complete Your Profile</h1>
+      <p>Please provide the following information to continue</p>
+    </div>
+
+    <form (ngSubmit)="onCompleteProfile()" class="profile-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          [value]="email()"
+          disabled
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name *</label>
+          <input
+            type="text"
+            id="firstName"
+            [value]="firstName()"
+            (input)="firstName.set(($any($event.target)).value)"
+            placeholder="Enter your first name"
+            class="form-input"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last Name *</label>
+          <input
+            type="text"
+            id="lastName"
+            [value]="lastName()"
+            (input)="lastName.set(($any($event.target)).value)"
+            placeholder="Enter your last name"
+            class="form-input"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="birthDate">Date of Birth *</label>
+        <input
+          type="date"
+          id="birthDate"
+          [value]="birthDate()"
+          (input)="birthDate.set(($any($event.target)).value)"
+          class="form-input"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Gender *</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input
+              type="radio"
+              name="sexe"
+              value="Male"
+              [checked]="sexe() === 'Male'"
+              (change)="sexe.set('Male')"
+            />
+            <span>Male</span>
+          </label>
+          <label class="radio-label">
+            <input
+              type="radio"
+              name="sexe"
+              value="Female"
+              [checked]="sexe() === 'Female'"
+              (change)="sexe.set('Female')"
+            />
+            <span>Female</span>
+          </label>
+          <label class="radio-label">
+            <input
+              type="radio"
+              name="sexe"
+              value="Other"
+              [checked]="sexe() === 'Other'"
+              (change)="sexe.set('Other')"
+            />
+            <span>Other</span>
+          </label>
+        </div>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-message">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="isLoading()"
+      >
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          Saving...
+        } @else {
+          Complete Profile
+        }
+      </button>
+    </form>
+  </div>
+</div>
