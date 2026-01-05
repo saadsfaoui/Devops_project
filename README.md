@@ -285,12 +285,15 @@ Rules automatically check:
 This project is for educational purposes as part of the EILCO DevOps course.
 
 ## 👨‍💻 Developers
+
 **Mohamed Taha Tahereddine**
-- GitHub: [@saadsfaoui](https://github.com/tahereddine)
+- GitHub: [@mohamedtahatahereddine](https://github.com/tahereddine)
+
 **Imane Karam**
-- GitHub: [@saadsfaoui](https://github.com/imanekaram)
+
 **Ibrahim Salah**
-- GitHub: [@saadsfaoui](https://github.com/salahibra)
+- GitHub: [@ibrahimsalah](https://github.com/salahibra)
+
 **Saad Sfaoui**
 - GitHub: [@saadsfaoui](https://github.com/saadsfaoui)
 
