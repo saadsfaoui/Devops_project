@@ -284,6 +284,9 @@ Rules automatically check:
 
 This project is for educational purposes as part of the EILCO DevOps course.
 
+## Deployement
+the project is available on : https://earthvibesapp.web.app/
+
 ## 👨‍💻 Developers
 
 **Mohamed Taha Tahereddine**
