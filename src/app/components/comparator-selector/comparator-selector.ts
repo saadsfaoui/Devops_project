@@ -11,6 +11,7 @@ export interface CityComparison {
   bikes?: any;
   music?: any;
   images?: any[];
+  cityImage?: string;
 }
 
 @Component({
@@ -61,13 +62,16 @@ export class ComparatorSelectorComponent {
     this.error.set('');
     
     try {
-      const [weather, airQuality, events, bikes, music] = await Promise.all([
+      const [weather, airQuality, events, bikes, music, images] = await Promise.all([
         this.apiService.getWeather(city).catch(() => null),
         this.apiService.getAirQuality(city).catch(() => null),
         this.apiService.getEvents(city).catch(() => []),
         this.apiService.getCityBikes(city).catch(() => null),
-        this.apiService.getCountryFromCity(city).then(country => this.apiService.getMusicByCountry(country)).catch(() => null)
+        this.apiService.getCountryFromCity(city).then(country => this.apiService.getMusicByCountry(country)).catch(() => null),
+        this.apiService.getCityImages(city).catch(() => [])
       ]);
+
+      const cityImage = images && images.length > 0 ? images[0].urls.regular : undefined;
 
       const data: CityComparison = {
         city,
@@ -75,7 +79,9 @@ export class ComparatorSelectorComponent {
         airQuality,
         events: events || [],
         bikes,
-        music
+        music,
+        images,
+        cityImage
       };
 
       if (dataField === 'city1Data') {

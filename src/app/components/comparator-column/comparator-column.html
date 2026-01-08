@@ -1,4 +1,12 @@
 <div class="column" *ngIf="data">
+  <!-- City Image Card -->
+  <div class="city-image-card" *ngIf="data.cityImage">
+    <img [src]="data.cityImage" [alt]="data.city" class="city-image">
+    <div class="image-overlay">
+      <h1 class="city-name">{{ data.city }}</h1>
+    </div>
+  </div>
+
   <!-- City Info Card -->
   <div class="card" *ngIf="data.weather">
     <h2>{{ data.city }}</h2>
