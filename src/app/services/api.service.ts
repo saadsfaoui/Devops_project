@@ -325,6 +325,84 @@ export class ApiService {
     }
   }
 
+  // ======================== LAST.FM MUSIC ========================
+  async getCountryCode(countryName: string): Promise<string> {
+    // Maps country names to Last.fm country codes
+    const countryMap: { [key: string]: string } = {
+      "United States": "United States",
+      "United Kingdom": "United Kingdom",
+      "France": "France",
+      "Germany": "Germany",
+      "Spain": "Spain",
+      "Italy": "Italy",
+      "Canada": "Canada",
+      "Australia": "Australia",
+      "Japan": "Japan",
+      "Brazil": "Brazil",
+      "Mexico": "Mexico",
+      "India": "India",
+      "Russia": "Russia",
+      "China": "China",
+      "South Korea": "South Korea"
+    };
+    return countryMap[countryName] || countryName;
+  }
+
+  async getTopTracksByCountry(country: string): Promise<any[]> {
+    const url = `https://ws.audioscrobbler.com/2.0/?method=geo.gettoptracks&country=${encodeURIComponent(country)}&limit=10&api_key=${KEYS.LASTFM}&format=json`;
+    const res = await this.fetchWithTimeout(url);
+    const data = await res.json();
+    return data.tracks?.track || [];
+  }
+
+  async getTopArtistsByCountry(country: string): Promise<any[]> {
+    const url = `https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=${encodeURIComponent(country)}&limit=10&api_key=${KEYS.LASTFM}&format=json`;
+    const res = await this.fetchWithTimeout(url);
+    const data = await res.json();
+    return data.topartists?.artist || [];
+  }
+
+  async getArtistImage(artistName: string): Promise<string> {
+    try {
+      const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(artistName)}&api_key=${KEYS.LASTFM}&format=json`;
+      const res = await this.fetchWithTimeout(url);
+      const data = await res.json();
+      return data.artist?.image?.[2]?.["#text"] || data.artist?.image?.[3]?.["#text"] || "";
+    } catch (err) {
+      console.warn("Failed to get artist image for", artistName);
+      return "";
+    }
+  }
+
+  async getTrackImage(artistName: string, trackName: string): Promise<string> {
+    try {
+      const url = `https://ws.audioscrobbler.com/2.0/?method=track.getInfo&artist=${encodeURIComponent(artistName)}&track=${encodeURIComponent(trackName)}&api_key=${KEYS.LASTFM}&format=json`;
+      const res = await this.fetchWithTimeout(url);
+      const data = await res.json();
+      return data.track?.album?.image?.[2]?.["#text"] || data.track?.album?.image?.[3]?.["#text"] || "";
+    } catch (err) {
+      console.warn("Failed to get track image");
+      return "";
+    }
+  }
+
+  async getMusicByCountry(country: string): Promise<any> {
+    try {
+      const countryCode = await this.getCountryCode(country);
+      const tracks = await this.getTopTracksByCountry(countryCode);
+      const artists = await this.getTopArtistsByCountry(countryCode);
+      
+      return {
+        country: countryCode,
+        tracks,
+        artists
+      };
+    } catch (err) {
+      console.error("Music fetch error:", err);
+      throw err;
+    }
+  }
+
   // ======================== CITY BIKES ========================
   async getCityBikes(city: string): Promise<{ name: string; stations: BikeStation[] }> {
     const url = `https://api.citybik.es/v2/networks`;

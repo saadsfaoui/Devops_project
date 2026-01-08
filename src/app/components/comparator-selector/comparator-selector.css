@@ -8,6 +8,9 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
   border: 1px solid #e5e7eb;
   align-items: center;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .city-input-group {

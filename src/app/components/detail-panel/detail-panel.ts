@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FavouritesService } from '../../services/favourites.service';
 import { FlashService } from '../../services/flash.service';
+import { ApiService } from '../../services/api.service';
 
 export interface BikeData {
   status: string;
@@ -45,10 +46,15 @@ export class DetailPanelComponent implements OnInit, OnChanges {
   isTogglingFavourite = signal(false);
   currentRating = signal<number | undefined>(undefined);
   isUpdatingRating = signal(false);
+  cultureEvents = signal<any[]>([]);
+  loadingCulture = signal(false);
+  musicData = signal<any>(null);
+  loadingMusic = signal(false);
 
   constructor(
     private favouritesService: FavouritesService,
-    private flashService: FlashService
+    private flashService: FlashService,
+    private apiService: ApiService
   ) {}
 
   tabs = [
@@ -67,6 +73,8 @@ export class DetailPanelComponent implements OnInit, OnChanges {
     if (changes['location'] && !changes['location'].firstChange) {
       this.checkFavouriteStatus();
       this.checkRating();
+      this.cultureEvents.set([]);
+      this.musicData.set(null);
     }
   }
 
@@ -84,6 +92,49 @@ export class DetailPanelComponent implements OnInit, OnChanges {
         rating => this.currentRating.set(rating)
       );
     }
+  }
+
+  loadCultureEvents() {
+    if (this.cultureEvents().length > 0 || this.loadingCulture()) {
+      return; // Already loaded or loading
+    }
+
+    this.loadingCulture.set(true);
+    
+    this.apiService.getEvents(this.location.name)
+      .then(events => {
+        this.cultureEvents.set(events || []);
+      })
+      .catch(err => {
+        console.error('Failed to load culture events:', err);
+        this.flashService.show('Failed to load events', 'error');
+        this.cultureEvents.set([]);
+      })
+      .finally(() => {
+        this.loadingCulture.set(false);
+      });
+  }
+
+  loadMusicData() {
+    if (this.musicData() || this.loadingMusic()) {
+      return; // Already loaded or loading
+    }
+
+    this.loadingMusic.set(true);
+
+    this.apiService.getCountryFromCity(this.location.name)
+      .then(country => this.apiService.getMusicByCountry(country))
+      .then(data => {
+        this.musicData.set(data);
+      })
+      .catch(err => {
+        console.error('Failed to load music data:', err);
+        this.flashService.show('Failed to load music data', 'error');
+        this.musicData.set(null);
+      })
+      .finally(() => {
+        this.loadingMusic.set(false);
+      });
   }
 
   async toggleFavourite(event: Event) {
@@ -122,6 +173,13 @@ export class DetailPanelComponent implements OnInit, OnChanges {
   onTabClick(tabValue: string) {
     this.activeTab = tabValue as any;
     this.tabChange.emit(tabValue);
+    
+    // Load data when specific tabs are clicked
+    if (tabValue === 'culture') {
+      this.loadCultureEvents();
+    } else if (tabValue === 'music') {
+      this.loadMusicData();
+    }
   }
 
   onClose() {

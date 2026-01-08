@@ -87,6 +87,61 @@
     </div>
   </div>
 
+  <!-- Forecast Card -->
+  <div class="card" *ngIf="data.weather?.forecast?.forecastday">
+    <h3>📅 3-Day Forecast</h3>
+    <div class="forecast-grid">
+      <div class="forecast-item" *ngFor="let day of data.weather.forecast.forecastday">
+        <div class="forecast-date">{{ day.date | slice:5:10 }}</div>
+        <img 
+          *ngIf="day.day?.condition?.icon" 
+          [src]="'https:' + day.day.condition.icon" 
+          alt="Weather"
+          class="forecast-icon"
+        >
+        <div class="forecast-temp">
+          <span class="max">{{ day.day?.maxtemp_c || '—' }}°</span>
+          <span class="min">{{ day.day?.mintemp_c || '—' }}°</span>
+        </div>
+        <div class="forecast-condition">{{ day.day?.condition?.text || '—' }}</div>
+        <div class="forecast-rain" *ngIf="day.day?.daily_chance_of_rain">
+          💧 {{ day.day.daily_chance_of_rain }}%
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Music Card -->
+  <div class="card" *ngIf="$any(data).music">
+    <h3>🎶 Music</h3>
+    
+    <!-- Top Tracks -->
+    <div class="music-section">
+      <h4>🔥 Top Tracks</h4>
+      <div class="music-list">
+        <div class="music-item" *ngFor="let track of $any(data).music.tracks?.slice(0, 5)">
+          <div class="track-info">
+            <p class="track-name">{{ track.name || '—' }}</p>
+            <p class="artist-name">{{ track.artist?.name || '—' }}</p>
+          </div>
+          <span class="plays" *ngIf="track.playcount">{{ track.playcount }} plays</span>
+          <span class="plays" *ngIf="!track.playcount && track.listeners">{{ track.listeners }} listeners</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Artists -->
+    <div class="music-section">
+      <h4>🎤 Top Artists</h4>
+      <div class="artists-grid">
+        <div class="artist-item" *ngFor="let artist of $any(data).music.artists?.slice(0, 5)">
+          <p class="artist-name">{{ artist.name || '—' }}</p>
+          <span class="listeners" *ngIf="artist.listeners">{{ artist.listeners }} listeners</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Events Card -->
   <div class="card" *ngIf="data.events && data.events.length > 0">
     <h3>Upcoming Events</h3>

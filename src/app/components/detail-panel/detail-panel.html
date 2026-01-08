@@ -119,16 +119,95 @@
     <!-- Culture Section -->
     <div *ngIf="activeTab === 'culture'" class="section">
       <div class="info-section">
-        <h3>Cultural Information</h3>
-        <p>Cultural details coming soon...</p>
+        <h3>🎭 Events & Culture</h3>
+        
+        <div *ngIf="loadingCulture()" class="loading-message">
+          ⏳ Loading events...
+        </div>
+
+        <div *ngIf="!loadingCulture() && cultureEvents().length > 0" class="events-list">
+          <div class="event-card" *ngFor="let event of cultureEvents().slice(0, 5)">
+            <div class="event-header">
+              <img 
+                *ngIf="event.image" 
+                [src]="event.image" 
+                alt="Event"
+                class="event-image"
+              >
+              <div *ngIf="!event.image" class="event-image-placeholder">🎫</div>
+              <div class="event-details">
+                <h4>{{ event.name }}</h4>
+                <p class="event-date">📅 {{ event.date }} {{ event.time ? '@ ' + event.time : '' }}</p>
+                <p class="event-venue">📍 {{ event.venue }}</p>
+              </div>
+            </div>
+            <div class="event-footer" *ngIf="event.price || event.status">
+              <span *ngIf="event.price" class="event-price">💰 {{ event.price }}</span>
+              <span *ngIf="event.status" class="event-status">{{ event.status }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!loadingCulture() && cultureEvents().length === 0" class="no-events">
+          <p>No upcoming events found for {{ location.name }}</p>
+        </div>
       </div>
     </div>
 
     <!-- Music Section -->
     <div *ngIf="activeTab === 'music'" class="section">
       <div class="info-section">
-        <h3>Music & Events</h3>
-        <p>Music information coming soon...</p>
+        <h3>🎶 Music & Artists</h3>
+        
+        <div *ngIf="loadingMusic()" class="loading-message">
+          ⏳ Loading music data...
+        </div>
+
+        <div *ngIf="!loadingMusic() && musicData()">
+          <!-- Top Tracks -->
+          <div class="music-subsection">
+            <h4>🔥 Top Tracks</h4>
+            <div class="tracks-list">
+              <div class="track-card" *ngFor="let track of musicData().tracks?.slice(0, 8)">
+                <div class="track-header">
+                  <div class="track-number">{{ musicData().tracks.indexOf(track) + 1 }}</div>
+                  <div class="track-info">
+                    <p class="track-title">{{ track.name || '—' }}</p>
+                    <p class="track-artist">by {{ track.artist?.name || '—' }}</p>
+                  </div>
+                </div>
+                <div class="track-stats">
+                  <span class="stat-badge" *ngIf="track.playcount">
+                    🔊 {{ (track.playcount | number) || '—' }}
+                  </span>
+                  <span class="stat-badge" *ngIf="!track.playcount && track.listeners">
+                    👥 {{ (track.listeners | number) || '—' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Artists -->
+          <div class="music-subsection">
+            <h4>🎤 Top Artists</h4>
+            <div class="artists-grid">
+              <div class="artist-card" *ngFor="let artist of musicData().artists?.slice(0, 6)">
+                <div class="artist-avatar">
+                  {{ artist.name.charAt(0).toUpperCase() }}
+                </div>
+                <p class="artist-name">{{ artist.name || '—' }}</p>
+                <span class="listeners-count" *ngIf="artist.listeners">
+                  👥 {{ (artist.listeners | number) || '—' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!loadingMusic() && !musicData()" class="no-data">
+          <p>Unable to load music data for {{ location.country }}</p>
+        </div>
       </div>
     </div>
 
