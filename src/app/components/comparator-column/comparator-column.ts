@@ -8,6 +8,8 @@ export interface CityComparison {
   events?: any[];
   bikes?: any;
   images?: any[];
+  music?: any;
+  cityImage?: string;
 }
 
 @Component({

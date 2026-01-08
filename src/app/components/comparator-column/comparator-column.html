@@ -1,4 +1,12 @@
 <div class="column" *ngIf="data">
+  <!-- City Image Card -->
+  <div class="city-image-card" *ngIf="data.cityImage">
+    <img [src]="data.cityImage" [alt]="data.city" class="city-image">
+    <div class="image-overlay">
+      <h1 class="city-name">{{ data.city }}</h1>
+    </div>
+  </div>
+
   <!-- City Info Card -->
   <div class="card" *ngIf="data.weather">
     <h2>{{ data.city }}</h2>
@@ -21,7 +29,29 @@
 
   <!-- Climate Card -->
   <div class="card" *ngIf="data.weather">
-    <h3>Climate</h3>
+    <h3>☀️ Climate</h3>
+    
+    <div class="weather-display" *ngIf="data.weather.current">
+      <div class="weather-icon-section">
+        <img 
+          *ngIf="data.weather.current?.condition?.icon" 
+          [src]="'https:' + data.weather.current.condition.icon" 
+          alt="Weather condition"
+          class="weather-icon-large"
+        >
+        <div *ngIf="!data.weather.current?.condition?.icon" class="weather-icon-placeholder">
+          ☁️
+        </div>
+      </div>
+      
+      <div class="weather-info">
+        <div class="temperature-display">
+          <span class="temp-value">{{ data.weather.current?.temp_c || '—' }}°C</span>
+          <span class="condition-text">{{ data.weather.current?.condition?.text || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
     <div class="info-grid">
       <div>
         Temperature<br>
@@ -36,8 +66,16 @@
         <strong>{{ data.weather.current?.wind_kph || '—' }} km/h</strong>
       </div>
       <div>
-        Condition<br>
-        <strong>{{ data.weather.current?.condition?.text || '—' }}</strong>
+        Feels Like<br>
+        <strong>{{ data.weather.current?.feelslike_c || '—' }}°C</strong>
+      </div>
+      <div>
+        Pressure<br>
+        <strong>{{ data.weather.current?.pressure_mb || '—' }} mb</strong>
+      </div>
+      <div>
+        Visibility<br>
+        <strong>{{ data.weather.current?.vis_km || '—' }} km</strong>
       </div>
     </div>
 
@@ -53,6 +91,61 @@
       <div>
         NO₂<br>
         <strong>{{ data.airQuality.no2 || '—' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forecast Card -->
+  <div class="card" *ngIf="data.weather?.forecast?.forecastday">
+    <h3>📅 3-Day Forecast</h3>
+    <div class="forecast-grid">
+      <div class="forecast-item" *ngFor="let day of data.weather.forecast.forecastday">
+        <div class="forecast-date">{{ day.date | slice:5:10 }}</div>
+        <img 
+          *ngIf="day.day?.condition?.icon" 
+          [src]="'https:' + day.day.condition.icon" 
+          alt="Weather"
+          class="forecast-icon"
+        >
+        <div class="forecast-temp">
+          <span class="max">{{ day.day?.maxtemp_c || '—' }}°</span>
+          <span class="min">{{ day.day?.mintemp_c || '—' }}°</span>
+        </div>
+        <div class="forecast-condition">{{ day.day?.condition?.text || '—' }}</div>
+        <div class="forecast-rain" *ngIf="day.day?.daily_chance_of_rain">
+          💧 {{ day.day.daily_chance_of_rain }}%
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Music Card -->
+  <div class="card" *ngIf="$any(data).music">
+    <h3>🎶 Music</h3>
+    
+    <!-- Top Tracks -->
+    <div class="music-section">
+      <h4>🔥 Top Tracks</h4>
+      <div class="music-list">
+        <div class="music-item" *ngFor="let track of $any(data).music.tracks?.slice(0, 5)">
+          <div class="track-info">
+            <p class="track-name">{{ track.name || '—' }}</p>
+            <p class="artist-name">{{ track.artist?.name || '—' }}</p>
+          </div>
+          <span class="plays" *ngIf="track.playcount">{{ track.playcount }} plays</span>
+          <span class="plays" *ngIf="!track.playcount && track.listeners">{{ track.listeners }} listeners</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Artists -->
+    <div class="music-section">
+      <h4>🎤 Top Artists</h4>
+      <div class="artists-grid">
+        <div class="artist-item" *ngFor="let artist of $any(data).music.artists?.slice(0, 5)">
+          <p class="artist-name">{{ artist.name || '—' }}</p>
+          <span class="listeners" *ngIf="artist.listeners">{{ artist.listeners }} listeners</span>
+        </div>
       </div>
     </div>
   </div>

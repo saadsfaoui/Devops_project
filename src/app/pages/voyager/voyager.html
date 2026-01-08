@@ -1,1 +1,78 @@
-<app-map></app-map>
+<div class="voyager-container" [style.backgroundImage]="'url(' + currentCity().imageUrl + ')'">
+  <!-- Dark overlay -->
+  <div class="overlay"></div>
+
+  <!-- Navigation Arrows -->
+  <button class="nav-arrow prev-arrow" (click)="navigatePrevious()" title="Previous city">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  </button>
+
+  <button class="nav-arrow next-arrow" (click)="navigateNext()" title="Next city">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
+
+  <!-- Content Container -->
+  <div class="content-wrapper">
+    <!-- City Information Card -->
+    <div class="info-card">
+      <!-- City Name and Weather -->
+      <div class="header-section">
+        <h1 class="city-name">{{ currentCity().name }}</h1>
+        
+        <div *ngIf="currentCity().weather" class="weather-info">
+          <div class="weather-main">
+            <span class="weather-icon">{{ getWeatherIcon(currentCity().weather!.current.condition.text) }}</span>
+            <div class="weather-details">
+              <div class="temp">{{ formatTemperature(currentCity().weather!.current.temp_c) }}</div>
+              <div class="condition">{{ currentCity().weather!.current.condition.text }}</div>
+            </div>
+          </div>
+          
+          <div class="weather-stats">
+            <div class="stat">
+              <span class="label">Feels</span>
+              <span class="value">{{ formatTemperature(currentCity().weather!.current.feelslike_c) }}</span>
+            </div>
+            <div class="stat">
+              <span class="label">Humidity</span>
+              <span class="value">{{ currentCity().weather!.current.humidity }}%</span>
+            </div>
+            <div class="stat">
+              <span class="label">Wind</span>
+              <span class="value">{{ currentCity().weather!.current.wind_kph | number: '1.0-0' }} km/h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Music Section -->
+      <div *ngIf="currentCity().music" class="music-section">
+        <div class="music-header">
+          <span class="music-icon">🎵</span>
+          <h3>Local Vibes</h3>
+        </div>
+        
+        <div *ngIf="currentCity().music!.artists && currentCity().music!.artists.length > 0" class="artists-grid">
+          <div *ngFor="let artist of currentCity().music!.artists.slice(0, 3)" class="artist-card">
+            <div class="artist-image" *ngIf="artist.picture_medium">
+              <img [src]="artist.picture_medium" [alt]="artist.name" />
+            </div>
+            <div class="artist-name">{{ artist.name }}</div>
+          </div>
+        </div>
+
+        <div *ngIf="currentCity().music!.tracks && currentCity().music!.tracks.length > 0" class="top-track">
+          <div class="track-info">
+            <span class="track-label">Now Playing</span>
+            <div class="track-title">{{ currentCity().music!.tracks[0].title }}</div>
+            <div class="track-artist">{{ currentCity().music!.tracks[0].artist.name }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
