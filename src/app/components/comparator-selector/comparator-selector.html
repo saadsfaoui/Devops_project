@@ -1,28 +1,57 @@
-<div class="selector-box">
-  <div class="city-input-group">
-    <input 
-      placeholder="Choisir une ville" 
-      [ngModel]="city1()"
-      (ngModelChange)="city1.set($event)"
-      (keydown.enter)="loadCity1()"
-      [disabled]="loading()"
-    />
-    <button (click)="loadCity1()" [disabled]="loading() || !city1()" class="load-btn">🔍</button>
+<div>
+  <div class="selector-box">
+    <div class="city-input-group">
+      <input 
+        placeholder="Select a city..." 
+        [ngModel]="city1()"
+        (ngModelChange)="city1.set($event)"
+        (keydown.enter)="loadCity1()"
+        [disabled]="loading()"
+        aria-label="First city for comparison"
+      />
+      <button 
+        (click)="loadCity1()" 
+        [disabled]="loading() || !city1()" 
+        class="load-btn"
+        title="Load city data"
+      >
+        🔍
+      </button>
+    </div>
+
+    <button 
+      class="refresh" 
+      (click)="compareSwitch()" 
+      [disabled]="loading() || !city1Data() || !city2Data()"
+      title="Swap cities"
+    >
+      ⟳
+    </button>
+
+    <div class="city-input-group">
+      <input 
+        placeholder="Select a city..." 
+        [ngModel]="city2()"
+        (ngModelChange)="city2.set($event)"
+        (keydown.enter)="loadCity2()"
+        [disabled]="loading()"
+        aria-label="Second city for comparison"
+      />
+      <button 
+        (click)="loadCity2()" 
+        [disabled]="loading() || !city2()" 
+        class="load-btn"
+        title="Load city data"
+      >
+        🔍
+      </button>
+    </div>
   </div>
 
-  <button class="refresh" (click)="compareSwitch()" [disabled]="loading() || !city1Data() || !city2Data()">⟳</button>
-
-  <div class="city-input-group">
-    <input 
-      placeholder="Choisir une ville" 
-      [ngModel]="city2()"
-      (ngModelChange)="city2.set($event)"
-      (keydown.enter)="loadCity2()"
-      [disabled]="loading()"
-    />
-    <button (click)="loadCity2()" [disabled]="loading() || !city2()" class="load-btn">🔍</button>
+  <div *ngIf="error()" class="error-message">
+    <strong>Error:</strong> {{ error() }}
+  </div>
+  <div *ngIf="loading()" class="loading-message">
+    ⏳ Loading city data...
   </div>
 </div>
-
-<div *ngIf="error()" class="error-message">{{ error() }}</div>
-<div *ngIf="loading()" class="loading-message">Chargement des données...</div>
