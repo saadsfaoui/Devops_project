@@ -31,14 +31,36 @@ export class NavbarComponent implements OnInit, OnDestroy {
   flashType = signal<'success' | 'error' | ''>('');
   searchResults = signal<Array<{name: string; country: string}>>([]);
   showSearchResults = signal(false);
+  mobileMenuOpen = signal(false);
 
   private authSubscription?: Subscription;
   private routerSubscription?: Subscription;
   private lastInitial = 'U';
-  private clickHandler = () => {
+  private clickHandler = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+
+    // Si clic sur hamburger ou dans le menu → ne rien faire
+    if (
+      target.closest('.hamburger') ||
+      target.closest('.nav-items')
+    ) {
+      return;
+    }
+
     this.showProfileMenu.set(false);
+    this.closeMobileMenu();
   };
-  
+
+    
+
+  toggleMobileMenu() {
+    this.mobileMenuOpen.set(!this.mobileMenuOpen());
+  }
+
+  closeMobileMenu() {
+    this.mobileMenuOpen.set(false);
+  }
+
   // For debugging
   get debugInfo() {
     return {
@@ -72,6 +94,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
         this.updateActiveNav();
+        this.closeMobileMenu(); // Fermer le menu mobile lors du changement de route
       });
 
     // Subscribe to auth state changes
@@ -89,13 +112,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.userInitial.set('');
         this.cdr.markForCheck();
       }
-      // Trigger change detection to update UI immediately
       this.cdr.detectChanges();
     });
 
-    // Close profile menu when clicking outside
+    // Close profile menu and mobile menu when clicking outside
     document.addEventListener('click', this.clickHandler);
   }
+
 
   ngOnDestroy() {
     this.authSubscription?.unsubscribe();
@@ -160,13 +183,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.router.navigate(['/account']);
   }
 
+  // Dans la méthode updateActiveNav(), ajoutez cette condition :
+
   private updateActiveNav() {
     const url = this.router.url;
     if (url.includes('voyager')) {
       this.activeNav.set('voyager');
+    } else if (url.includes('comparateur')) {
+      this.activeNav.set('comparateur');
     } else if (url.includes('favourites')) {
       this.activeNav.set('favourites');
-    } else if (url.includes('explore') || url.includes('comparateur')) {
+    } else if (url.includes('explore')) {
       this.activeNav.set('explore');
     } else {
       this.activeNav.set('home');
@@ -237,4 +264,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   navigateTo(path: string) {
     this.router.navigate([path]);
   }
+
+  // Mettez à jour updateActiveNav avec le comparateur :
+
+  
 }
