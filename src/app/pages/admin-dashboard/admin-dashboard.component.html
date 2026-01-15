@@ -1,24 +1,32 @@
 <div class="admin-dashboard">
   <header class="dashboard-header">
-    <h1>Admin Dashboard</h1>
-    <button class="logout-btn" (click)="logout()">Logout</button>
+    <div class="header-left">
+      <h1>Admin Dashboard</h1>
+      @if (lastUpdated()) {
+        <p class="last-updated">Last updated: {{ lastUpdated() | date:'short' }}</p>
+      }
+    </div>
+    <div class="header-actions">
+      <button class="refresh-btn" (click)="refreshData()" title="Refresh data">🔄</button>
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
   </header>
 
   <nav class="dashboard-nav">
     <button 
       [class.active]="selectedTab() === 'overview'" 
       (click)="selectTab('overview')">
-      Overview
+      📊 Overview
     </button>
     <button 
       [class.active]="selectedTab() === 'users'" 
       (click)="selectTab('users')">
-      Users Management
+      👥 Users Management
     </button>
     <button 
       [class.active]="selectedTab() === 'cities'" 
       (click)="selectTab('cities')">
-      City Statistics
+      🌍 City Statistics
     </button>
   </nav>
 
@@ -37,15 +45,75 @@
       <!-- Overview Tab -->
       @if (selectedTab() === 'overview') {
         <div class="overview-section">
-          <h2>Statistics Overview</h2>
+          <h2>Dashboard Overview</h2>
           
-          @if (userStats()) {
-            <div class="stats-grid">
-              <div class="stat-card">
-                <h3>Total Users</h3>
-                <p class="stat-value">{{ userStats()!.totalUsers }}</p>
+          <!-- Key Metrics Summary -->
+          <div class="metrics-summary">
+            <div class="metric-card metric-primary">
+              <div class="metric-icon">👥</div>
+              <div class="metric-content">
+                <p class="metric-label">Total Users</p>
+                <p class="metric-value">{{ userStats()?.totalUsers || 0 }}</p>
               </div>
+            </div>
+            <div class="metric-card metric-secondary">
+              <div class="metric-icon">✅</div>
+              <div class="metric-content">
+                <p class="metric-label">Active Users</p>
+                <p class="metric-value">{{ activeUsersCount() }}</p>
+              </div>
+            </div>
+            <div class="metric-card metric-tertiary">
+              <div class="metric-icon">❤️</div>
+              <div class="metric-content">
+                <p class="metric-label">Total Likes</p>
+                <p class="metric-value">{{ totalLikes() }}</p>
+              </div>
+            </div>
+            <div class="metric-card metric-quaternary">
+              <div class="metric-icon">⭐</div>
+              <div class="metric-content">
+                <p class="metric-label">Avg Rating</p>
+                <p class="metric-value">{{ averageRating() }}/5</p>
+              </div>
+            </div>
+            <div class="metric-card metric-quinary">
+              <div class="metric-icon">📍</div>
+              <div class="metric-content">
+                <p class="metric-label">Total Cities</p>
+                <p class="metric-value">{{ cityStats().length }}</p>
+              </div>
+            </div>
+            <div class="metric-card metric-senary">
+              <div class="metric-icon">📝</div>
+              <div class="metric-content">
+                <p class="metric-label">Total Ratings</p>
+                <p class="metric-value">{{ totalRatings() }}</p>
+              </div>
+            </div>
+          </div>
 
+          @if (userStats()) {
+            <!-- User Activity Chart -->
+            <div class="activity-section">
+              <h3>User Registration Activity</h3>
+              <div class="activity-chart-wrapper">
+                @if (userActivityChartData().labels && userActivityChartData().labels.length > 0) {
+                  <canvas 
+                    id="activityChart"
+                    class="activity-chart"
+                    baseChart 
+                    [type]="'line'" 
+                    [data]="userActivityChartData()"
+                    [options]="activityChartOptions">
+                  </canvas>
+                } @else {
+                  <p class="no-data">No activity data available</p>
+                }
+              </div>
+            </div>
+
+            <div class="stats-grid">
               <div class="stat-card">
                 <h3>Users by Gender</h3>
                 <div class="stat-breakdown">
@@ -93,6 +161,70 @@
                 </div>
               </div>
             </div>
+
+            <!-- Pie Charts Section -->
+            <div class="charts-section">
+              <h3 class="charts-title">Analytics Charts</h3>
+              
+              <div class="charts-grid">
+                <!-- Gender Pie Chart -->
+                <div class="chart-container">
+                  <h4>Gender Distribution</h4>
+                  <div class="chart-wrapper">
+                    @if (genderChartData().labels && genderChartData().labels.length > 0) {
+                      <canvas 
+                        id="genderChart"
+                        class="chart-canvas"
+                        baseChart 
+                        [type]="'pie'" 
+                        [data]="genderChartData()"
+                        [options]="pieChartOptions">
+                      </canvas>
+                    } @else {
+                      <p class="no-data">No gender data available</p>
+                    }
+                  </div>
+                </div>
+
+                <!-- Age Group Pie Chart -->
+                <div class="chart-container">
+                  <h4>Age Groups Distribution</h4>
+                  <div class="chart-wrapper">
+                    @if (ageGroupChartData().labels && ageGroupChartData().labels.length > 0) {
+                      <canvas 
+                        id="ageGroupChart"
+                        class="chart-canvas"
+                        baseChart 
+                        [type]="'pie'" 
+                        [data]="ageGroupChartData()"
+                        [options]="pieChartOptions">
+                      </canvas>
+                    } @else {
+                      <p class="no-data">No age group data available</p>
+                    }
+                  </div>
+                </div>
+
+                <!-- Top Cities Pie Chart -->
+                <div class="chart-container">
+                  <h4>Top Cities by Likes & Ratings</h4>
+                  <div class="chart-wrapper">
+                    @if (topCitiesChartData().labels && topCitiesChartData().labels.length > 0) {
+                      <canvas 
+                        id="topCitiesChart"
+                        class="chart-canvas"
+                        baseChart 
+                        [type]="'pie'" 
+                        [data]="topCitiesChartData()"
+                        [options]="pieChartOptions">
+                      </canvas>
+                    } @else {
+                      <p class="no-data">No city data available</p>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
           }
         </div>
       }
@@ -101,7 +233,19 @@
       @if (selectedTab() === 'users') {
         <div class="users-section">
           <h2>Users Management</h2>
-          <p class="users-count">Total: {{ allUsers().length }} users</p>
+          <p class="users-count">Total: {{ allUsers().length }} users | Showing: {{ getPaginatedUsers().length }} per page | Page {{ currentPage() }} of {{ getTotalPages() }}</p>
+          
+          <div class="users-controls">
+            <div class="search-box">
+              <input 
+                type="text" 
+                placeholder="Search by name, email, or gender..."
+                (input)="onSearchChange($event.target.value)"
+                class="search-input">
+              <span class="search-icon">🔍</span>
+            </div>
+            <button class="export-btn" (click)="exportUsersData()">📥 Export CSV</button>
+          </div>
           
           <div class="users-table-container">
             <table class="users-table">
@@ -117,38 +261,74 @@
                 </tr>
               </thead>
               <tbody>
-                @for (user of allUsers(); track user.id) {
-                  <tr [class.disabled-user]="user.disabled">
-                    <td>{{ user.firstName }} {{ user.lastName }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.sexe }}</td>
-                    <td>{{ calculateAge(user.birthDate) }}</td>
-                    <td>
-                      <span [class.status-badge]="true" [class.status-disabled]="user.disabled" [class.status-active]="!user.disabled">
-                        {{ user.disabled ? 'Disabled' : 'Active' }}
-                      </span>
-                    </td>
-                    <td>{{ getCreatedAtDate(user.createdAt) | date:'short' }}</td>
-                    <td>
-                      <div class="action-buttons">
-                        <button 
-                          [class.disable-btn]="!user.disabled"
-                          [class.enable-btn]="user.disabled"
-                          (click)="toggleUserStatus(user.id, user.firstName + ' ' + user.lastName, user.disabled || false)">
-                          {{ user.disabled ? 'Enable' : 'Disable' }}
-                        </button>
-                        <button 
-                          class="delete-btn"
-                          (click)="deleteUser(user.id, user.firstName + ' ' + user.lastName)">
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+                @if (getPaginatedUsers().length > 0) {
+                  @for (user of getPaginatedUsers(); track user.id) {
+                    <tr [class.disabled-user]="user.disabled">
+                      <td>{{ user.firstName }} {{ user.lastName }}</td>
+                      <td>{{ user.email }}</td>
+                      <td>{{ user.sexe }}</td>
+                      <td>{{ calculateAge(user.birthDate) }}</td>
+                      <td>
+                        <span [class.status-badge]="true" [class.status-disabled]="user.disabled" [class.status-active]="!user.disabled">
+                          {{ user.disabled ? 'Disabled' : 'Active' }}
+                        </span>
+                      </td>
+                      <td>{{ getCreatedAtDate(user.createdAt) | date:'short' }}</td>
+                      <td>
+                        <div class="action-buttons">
+                          <button 
+                            [class.disable-btn]="!user.disabled"
+                            [class.enable-btn]="user.disabled"
+                            (click)="toggleUserStatus(user.id, user.firstName + ' ' + user.lastName, user.disabled || false)">
+                            {{ user.disabled ? 'Enable' : 'Disable' }}
+                          </button>
+                          <button 
+                            class="delete-btn"
+                            (click)="deleteUser(user.id, user.firstName + ' ' + user.lastName)">
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                } @else {
+                  <tr>
+                    <td colspan="7" class="no-results">No users found matching your search</td>
                   </tr>
                 }
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination Controls -->
+          @if (getTotalPages() > 0) {
+            <div class="pagination-container">
+              <button 
+                class="pagination-btn"
+                (click)="prevPage()"
+                [disabled]="currentPage() === 1">
+                ← Previous
+              </button>
+              
+              <div class="pagination-pages">
+                @for (page of getPageNumbers(); track page) {
+                  <button 
+                    [class.pagination-page]="true"
+                    [class.active]="currentPage() === page"
+                    (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                }
+              </div>
+              
+              <button 
+                class="pagination-btn"
+                (click)="nextPage()"
+                [disabled]="currentPage() === getTotalPages()">
+                Next →
+              </button>
+            </div>
+          }
         </div>
       }
 
@@ -158,6 +338,27 @@
           <h2>City Statistics</h2>
           <p class="cities-count">Total cities liked: {{ cityStats().length }}</p>
           
+          <!-- Cities Comparison Bar Chart -->
+          <div class="chart-container cities-chart">
+            <h4>Top 10 Cities - Likes vs Ratings</h4>
+            <div class="chart-wrapper">
+              @if (citiesComparisonChartData().labels && citiesComparisonChartData().labels.length > 0) {
+                <canvas 
+                  id="citiesComparisonChart"
+                  class="chart-canvas"
+                  baseChart 
+                  [type]="'bar'" 
+                  [data]="citiesComparisonChartData()"
+                  [options]="barChartOptions">
+                </canvas>
+              } @else {
+                <p class="no-data">No city data available</p>
+              }
+            </div>
+          </div>
+
+          <!-- Cities Grid -->
+          <h3 class="cities-grid-title">All Cities</h3>
           <div class="cities-grid">
             @for (city of cityStats(); track city.cityName) {
               <div class="city-card">

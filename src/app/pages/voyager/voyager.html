@@ -73,6 +73,12 @@
           </div>
         </div>
       </div>
+
+      <!-- Country Section -->
+      <div class="country-section" *ngIf="currentCity().country">
+        <div class="country-divider"></div>
+        <div class="country-name">{{ currentCity().country }}</div>
+      </div>
     </div>
   </div>
 </div>

@@ -4,6 +4,7 @@ import { ApiService, WeatherData, Track, CityImage } from '../../services/api.se
 
 interface CityData {
   name: string;
+  country: string;
   weather: WeatherData | null;
   music: any | null;
   imageUrl: string;
@@ -20,6 +21,7 @@ interface CityData {
 export class VoyagerComponent implements OnInit, OnDestroy {
   currentCity = signal<CityData>({
     name: 'Loading...',
+    country: '',
     weather: null,
     music: null,
     imageUrl: '',
@@ -106,10 +108,11 @@ export class VoyagerComponent implements OnInit, OnDestroy {
 
   async loadCity(city: string) {
     try {
-      const [weather, music, images] = await Promise.all([
+      const [weather, music, images, country] = await Promise.all([
         this.apiService.getWeather(city).catch(() => null),
         this.apiService.getMusicByCity(city).catch(() => null),
-        this.apiService.getCityImages(city).catch(() => [] as CityImage[])
+        this.apiService.getCityImages(city).catch(() => [] as CityImage[]),
+        this.apiService.getCountryFromCity(city).catch(() => '')
       ]);
 
       const imageUrl = images.length > 0 
@@ -118,6 +121,7 @@ export class VoyagerComponent implements OnInit, OnDestroy {
 
       this.currentCity.set({
         name: city,
+        country,
         weather,
         music,
         imageUrl,
