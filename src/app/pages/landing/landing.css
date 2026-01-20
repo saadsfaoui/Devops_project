@@ -517,6 +517,46 @@ input:focus, textarea:focus {
               0 8px 24px rgba(52, 211, 153, 0.15);
 }
 
+input.error, textarea.error {
+  border-color: #ef4444;
+}
+
+input.error:focus, textarea.error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1),
+              0 8px 24px rgba(239, 68, 68, 0.15);
+}
+
+.error-message {
+  display: block;
+  color: #ef4444;
+  font-size: 14px;
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+.success-message {
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  color: #34d399;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.error-message-box {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
 .submit-btn {
   background: linear-gradient(135deg, #d5d29f 0%, #b8b580 100%);
   border: none;
@@ -532,7 +572,13 @@ input:focus, textarea:focus {
   box-shadow: 0 15px 40px rgba(213, 210, 159, 0.3);
 }
 
-.submit-btn:hover {
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.submit-btn:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 20px 50px rgba(213, 210, 159, 0.4);
   background: linear-gradient(135deg, #e0ddb0 0%, #c5c290 100%);

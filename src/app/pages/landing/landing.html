@@ -99,13 +99,64 @@
       <p>Have questions or feedback? We'd love to hear from you. Reach out and let's start a conversation about exploring our planet together.</p>
     </div>
     <div>
-      <label>Name</label>
-      <input type="text" placeholder="Your name" />
-      <label>Email</label>
-      <input type="email" placeholder="your@email.com" />
-      <label>Message</label>
-      <textarea rows="5" placeholder="Tell us what's on your mind..."></textarea>
-      <button class="submit-btn">Submit</button>
+      <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+        <label>Name</label>
+        <input 
+          type="text" 
+          placeholder="Your name" 
+          formControlName="name"
+          [class.error]="contactForm.get('name')?.invalid && contactForm.get('name')?.touched"
+        />
+        @if (getErrorMessage('name')) {
+          <span class="error-message">{{ getErrorMessage('name') }}</span>
+        }
+
+        <label>Email</label>
+        <input 
+          type="email" 
+          placeholder="your@email.com" 
+          formControlName="email"
+          [class.error]="contactForm.get('email')?.invalid && contactForm.get('email')?.touched"
+        />
+        @if (getErrorMessage('email')) {
+          <span class="error-message">{{ getErrorMessage('email') }}</span>
+        }
+
+        <label>Message</label>
+        <textarea 
+          rows="5" 
+          placeholder="Tell us what's on your mind..."
+          formControlName="message"
+          [class.error]="contactForm.get('message')?.invalid && contactForm.get('message')?.touched"
+        ></textarea>
+        @if (getErrorMessage('message')) {
+          <span class="error-message">{{ getErrorMessage('message') }}</span>
+        }
+
+        @if (submitSuccess()) {
+          <div class="success-message">
+            ✅ Thank you! Your message has been sent successfully.
+          </div>
+        }
+
+        @if (submitError()) {
+          <div class="error-message-box">
+            ❌ {{ submitError() }}
+          </div>
+        }
+
+        <button 
+          type="submit" 
+          class="submit-btn" 
+          [disabled]="isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            Sending...
+          } @else {
+            Submit
+          }
+        </button>
+      </form>
     </div>
   </div>
 </section>

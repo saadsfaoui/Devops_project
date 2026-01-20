@@ -1,9 +1,13 @@
-import { Component, Input, Output, EventEmitter, signal, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { FavouritesService } from '../../services/favourites.service';
 import { FlashService } from '../../services/flash.service';
 import { ApiService } from '../../services/api.service';
+import { CommentsService, Comment } from '../../services/comments.service';
+import { AuthService } from '../../services/auth.service';
 
 export interface BikeData {
   status: string;
@@ -31,17 +35,17 @@ export interface LocationDetail {
 @Component({
   selector: 'app-detail-panel',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './detail-panel.html',
   styleUrl: './detail-panel.css'
 })
-export class DetailPanelComponent implements OnInit, OnChanges {
+export class DetailPanelComponent implements OnInit, OnChanges, OnDestroy {
   @Input() location!: LocationDetail;
   @Input() isOpen = false;
   @Output() close = new EventEmitter<void>();
   @Output() tabChange = new EventEmitter<string>();
 
-  activeTab: 'weather' | 'culture' | 'music' | 'bike' | 'pollution' = 'bike';
+  activeTab: 'weather' | 'culture' | 'music' | 'bike' | 'pollution' | 'comments' = 'bike';
   isFavourite = signal(false);
   isTogglingFavourite = signal(false);
   currentRating = signal<number | undefined>(undefined);
@@ -50,11 +54,19 @@ export class DetailPanelComponent implements OnInit, OnChanges {
   loadingCulture = signal(false);
   musicData = signal<any>(null);
   loadingMusic = signal(false);
+  comments = signal<Comment[]>([]);
+  loadingComments = signal(false);
+  newComment = signal('');
+  isAddingComment = signal(false);
+  currentUser = signal<any>(null);
+  private commentsSubscription?: Subscription;
 
   constructor(
     private favouritesService: FavouritesService,
     private flashService: FlashService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private commentsService: CommentsService,
+    private authService: AuthService
   ) {}
 
   tabs = [
@@ -62,11 +74,15 @@ export class DetailPanelComponent implements OnInit, OnChanges {
     { icon: '🗽', label: 'Culture', value: 'culture' },
     { icon: '🎶', label: 'Musique', value: 'music' },
     { icon: '🚲', label: 'Vélo', value: 'bike' },
-    { icon: '💨', label: 'Air pollution', value: 'pollution' }
+    { icon: '💨', label: 'Air pollution', value: 'pollution' },
+    { icon: '💬', label: 'Comments', value: 'comments' }
   ];
 
   ngOnInit() {
     this.checkFavouriteStatus();
+    this.authService.user$.subscribe(user => {
+      this.currentUser.set(user);
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -75,6 +91,22 @@ export class DetailPanelComponent implements OnInit, OnChanges {
       this.checkRating();
       this.cultureEvents.set([]);
       this.musicData.set(null);
+      this.comments.set([]);
+      this.newComment.set('');
+      // Unsubscribe from previous comments and reload if on comments tab
+      if (this.commentsSubscription) {
+        this.commentsSubscription.unsubscribe();
+        this.commentsSubscription = undefined;
+      }
+      if (this.activeTab === 'comments') {
+        this.loadComments();
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.commentsSubscription) {
+      this.commentsSubscription.unsubscribe();
     }
   }
 
@@ -179,6 +211,8 @@ export class DetailPanelComponent implements OnInit, OnChanges {
       this.loadCultureEvents();
     } else if (tabValue === 'music') {
       this.loadMusicData();
+    } else if (tabValue === 'comments') {
+      this.loadComments();
     }
   }
 
@@ -216,5 +250,92 @@ export class DetailPanelComponent implements OnInit, OnChanges {
 
   getRatingArray(): number[] {
     return [1, 2, 3, 4, 5];
+  }
+
+  loadComments() {
+    // Unsubscribe from previous subscription if exists
+    if (this.commentsSubscription) {
+      this.commentsSubscription.unsubscribe();
+    }
+    
+    this.loadingComments.set(true);
+    
+    this.commentsSubscription = this.commentsService.getCityComments(this.location.name, this.location.country)
+      .subscribe({
+        next: (comments) => {
+          this.comments.set(comments);
+          this.loadingComments.set(false);
+        },
+        error: (err) => {
+          console.error('Failed to load comments:', err);
+          this.flashService.show('Failed to load comments', 'error');
+          this.loadingComments.set(false);
+        }
+      });
+  }
+
+  async addComment() {
+    if (!this.newComment().trim()) {
+      this.flashService.show('Please enter a comment', 'error');
+      return;
+    }
+
+    if (!this.currentUser()) {
+      this.flashService.show('Please login to add comments', 'error');
+      return;
+    }
+
+    this.isAddingComment.set(true);
+
+    try {
+      await this.commentsService.addComment(
+        this.location.name,
+        this.location.country,
+        this.newComment()
+      );
+      this.newComment.set('');
+      this.flashService.show('Comment added successfully', 'success');
+      // No need to reload - the subscription will automatically update
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      this.flashService.show('Failed to add comment', 'error');
+    } finally {
+      this.isAddingComment.set(false);
+    }
+  }
+
+  async deleteComment(commentId: string | undefined) {
+    if (!commentId) return;
+
+    if (!confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
+    try {
+      await this.commentsService.deleteComment(commentId);
+      this.flashService.show('Comment deleted successfully', 'success');
+      // No need to reload - the subscription will automatically update
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      this.flashService.show('Failed to delete comment', 'error');
+    }
+  }
+
+  canDeleteComment(comment: Comment): boolean {
+    return this.currentUser() && comment.userId === this.currentUser().uid;
+  }
+
+  formatCommentDate(date: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
   }
 }

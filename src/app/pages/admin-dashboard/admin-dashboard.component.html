@@ -28,6 +28,11 @@
       (click)="selectTab('cities')">
       🌍 City Statistics
     </button>
+    <button 
+      [class.active]="selectedTab() === 'messages'" 
+      (click)="selectTab('messages')">
+      💬 Contact Messages
+    </button>
   </nav>
 
   <div class="dashboard-content">
@@ -376,6 +381,120 @@
               </div>
             }
           </div>
+        </div>
+      }
+
+      <!-- Contact Messages Tab -->
+      @if (selectedTab() === 'messages') {
+        <div class="messages-section">
+          <h2>Contact Messages</h2>
+          
+          <div class="messages-controls">
+            <input 
+              type="text" 
+              placeholder="Search messages..." 
+              (input)="onMessageSearchChange($any($event.target).value)"
+              class="search-input"
+            />
+            
+            <div class="status-filters">
+              <button 
+                [class.active]="selectedMessageStatus() === 'all'"
+                (click)="onStatusFilterChange('all')"
+                class="filter-btn">
+                All
+              </button>
+              <button 
+                [class.active]="selectedMessageStatus() === 'new'"
+                (click)="onStatusFilterChange('new')"
+                class="filter-btn filter-new">
+                New
+              </button>
+              <button 
+                [class.active]="selectedMessageStatus() === 'read'"
+                (click)="onStatusFilterChange('read')"
+                class="filter-btn filter-read">
+                Read
+              </button>
+              <button 
+                [class.active]="selectedMessageStatus() === 'replied'"
+                (click)="onStatusFilterChange('replied')"
+                class="filter-btn filter-replied">
+                Replied
+              </button>
+            </div>
+          </div>
+
+          <div class="messages-stats">
+            <div class="stat-item">
+              <span class="stat-label">Total Messages:</span>
+              <span class="stat-value">{{ contactMessages().length }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Filtered:</span>
+              <span class="stat-value">{{ filteredMessages().length }}</span>
+            </div>
+          </div>
+
+          @if (filteredMessages().length > 0) {
+            <div class="messages-list">
+              @for (message of filteredMessages(); track message.id) {
+                <div class="message-card">
+                  <div class="message-header">
+                    <div class="message-info">
+                      <h3>{{ message.name }}</h3>
+                      <p class="message-email">{{ message.email }}</p>
+                      <p class="message-date">{{ getCreatedAtDate(message.createdAt) | date:'medium' }}</p>
+                    </div>
+                    <div class="message-actions">
+                      <span [class]="getMessageStatusBadgeClass(message.status)" class="status-badge">
+                        {{ message.status }}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div class="message-body">
+                    <p>{{ message.message }}</p>
+                  </div>
+
+                  <div class="message-footer">
+                    <div class="status-buttons">
+                      @if (message.status !== 'new') {
+                        <button 
+                          (click)="updateMessageStatus(message.id!, 'new')" 
+                          class="status-btn btn-new">
+                          Mark as New
+                        </button>
+                      }
+                      @if (message.status !== 'read') {
+                        <button 
+                          (click)="updateMessageStatus(message.id!, 'read')" 
+                          class="status-btn btn-read">
+                          Mark as Read
+                        </button>
+                      }
+                      @if (message.status !== 'replied') {
+                        <button 
+                          (click)="updateMessageStatus(message.id!, 'replied')" 
+                          class="status-btn btn-replied">
+                          Mark as Replied
+                        </button>
+                      }
+                    </div>
+                    <button 
+                      (click)="deleteMessage(message.id!, message.name)" 
+                      class="delete-btn">
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="no-messages">
+              <p>No messages found</p>
+            </div>
+          }
         </div>
       }
     }

@@ -255,5 +255,71 @@
         <p>Pollution data not available</p>
       </div>
     </div>
+
+    <!-- Comments Section -->
+    <div *ngIf="activeTab === 'comments'" class="section">
+      <div class="comments-section">
+        <h3>💬 Comments</h3>
+        
+        <!-- Add Comment Form -->
+        <div class="add-comment-form" *ngIf="currentUser()">
+          <textarea 
+            [(ngModel)]="newComment"
+            placeholder="Share your thoughts about {{ location.name }}..."
+            class="comment-input"
+            rows="3"
+            [disabled]="isAddingComment()"
+          ></textarea>
+          <button 
+            class="submit-comment-btn"
+            (click)="addComment()"
+            [disabled]="isAddingComment() || !newComment().trim()"
+          >
+            {{ isAddingComment() ? 'Posting...' : 'Post Comment' }}
+          </button>
+        </div>
+
+        <!-- Login message for non-authenticated users -->
+        <div class="login-message" *ngIf="!currentUser()">
+          <p>Please <a [routerLink]="['/login']">login</a> to add comments</p>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="loadingComments()" class="loading-message">
+          ⏳ Loading comments...
+        </div>
+
+        <!-- Comments List -->
+        <div *ngIf="!loadingComments() && comments().length > 0" class="comments-list">
+          <div class="comment-card" *ngFor="let comment of comments()">
+            <div class="comment-header">
+              <div class="comment-avatar">
+                {{ comment.userName.charAt(0).toUpperCase() }}
+              </div>
+              <div class="comment-meta">
+                <p class="comment-author">{{ comment.userName }}</p>
+                <p class="comment-date">{{ formatCommentDate(comment.createdAt) }}</p>
+              </div>
+              <button 
+                *ngIf="canDeleteComment(comment)"
+                class="delete-comment-btn"
+                (click)="deleteComment(comment.id)"
+                title="Delete comment"
+              >
+                🗑
+              </button>
+            </div>
+            <div class="comment-body">
+              <p>{{ comment.text }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Comments State -->
+        <div *ngIf="!loadingComments() && comments().length === 0" class="no-comments">
+          <p>No comments yet. Be the first to share your thoughts about {{ location.name }}!</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

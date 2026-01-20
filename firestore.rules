@@ -39,6 +39,36 @@ service cloud.firestore {
       allow delete: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
     }
     
+    // Contact Messages collection - anyone can create, only admin can read/update/delete
+    match /contactMessages/{messageId} {
+      // Only admin can read messages
+      allow read: if isAdmin();
+      
+      // Anyone can create a message (even unauthenticated users from contact form)
+      allow create: if true;
+      
+      // Only admin can update messages (e.g., marking as read/replied)
+      allow update: if isAdmin();
+      
+      // Only admin can delete messages
+      allow delete: if isAdmin();
+    }
+    
+    // Comments collection - authenticated users can read all, create and delete their own
+    match /comments/{commentId} {
+      // Anyone can read comments (even unauthenticated users)
+      allow read: if true;
+      
+      // Authenticated users can create comments with their own userId
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Users can only delete their own comments, admin can delete all
+      allow delete: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      
+      // No updates allowed for comments (they should be immutable)
+      allow update: if false;
+    }
+    
     // Default deny all other collections
     match /{document=**} {
       allow read, write: if false;

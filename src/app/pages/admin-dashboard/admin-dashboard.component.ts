@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService, UserStats, CityStats, UserData } from '../../services/admin.service';
 import { AuthService } from '../../services/auth.service';
+import { ContactService, ContactMessage } from '../../services/contact.service';
 import { Router } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
@@ -18,6 +19,7 @@ Chart.register(...registerables);
 export class AdminDashboardComponent implements OnInit {
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
+  private contactService = inject(ContactService);
   private router = inject(Router);
 
   userStats = signal<UserStats | null>(null);
@@ -26,9 +28,15 @@ export class AdminDashboardComponent implements OnInit {
   filteredUsers = signal<UserData[]>([]);
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
-  selectedTab = signal<'overview' | 'users' | 'cities'>('overview');
+  selectedTab = signal<'overview' | 'users' | 'cities' | 'messages'>('overview');
   searchQuery = signal<string>('');
   lastUpdated = signal<Date | null>(null);
+  
+  // Contact messages
+  contactMessages = signal<ContactMessage[]>([]);
+  filteredMessages = signal<ContactMessage[]>([]);
+  messageSearchQuery = signal<string>('');
+  selectedMessageStatus = signal<'all' | 'new' | 'read' | 'replied'>('all');
   
   // Pagination
   currentPage = signal<number>(1);
@@ -240,8 +248,13 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
 
-  selectTab(tab: 'overview' | 'users' | 'cities') {
+  selectTab(tab: 'overview' | 'users' | 'cities' | 'messages') {
     this.selectedTab.set(tab);
+    
+    // Load messages when messages tab is selected
+    if (tab === 'messages' && this.contactMessages().length === 0) {
+      this.loadContactMessages();
+    }
   }
 
   onSearchChange(query: string) {
@@ -611,5 +624,86 @@ export class AdminDashboardComponent implements OnInit {
         }
       ]
     });
+  }
+
+  // Contact Messages Methods
+  loadContactMessages() {
+    this.contactService.getAllMessages().subscribe({
+      next: (messages) => {
+        this.contactMessages.set(messages);
+        this.filteredMessages.set(messages);
+      },
+      error: (err) => {
+        console.error('Error loading contact messages:', err);
+        this.error.set('Failed to load contact messages');
+      }
+    });
+  }
+
+  onMessageSearchChange(query: string) {
+    this.messageSearchQuery.set(query.toLowerCase());
+    this.filterMessages();
+  }
+
+  onStatusFilterChange(status: 'all' | 'new' | 'read' | 'replied') {
+    this.selectedMessageStatus.set(status);
+    this.filterMessages();
+  }
+
+  filterMessages() {
+    const query = this.messageSearchQuery();
+    const statusFilter = this.selectedMessageStatus();
+    const allMessages = this.contactMessages();
+    
+    let filtered = allMessages;
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(msg => msg.status === statusFilter);
+    }
+
+    // Filter by search query
+    if (query) {
+      filtered = filtered.filter(msg =>
+        msg.name.toLowerCase().includes(query) ||
+        msg.email.toLowerCase().includes(query) ||
+        msg.message.toLowerCase().includes(query)
+      );
+    }
+
+    this.filteredMessages.set(filtered);
+  }
+
+  async updateMessageStatus(messageId: string, status: 'new' | 'read' | 'replied') {
+    try {
+      await this.contactService.updateMessageStatus(messageId, status);
+      // Reload messages to reflect the change
+      this.loadContactMessages();
+    } catch (err) {
+      console.error('Error updating message status:', err);
+      alert('Failed to update message status');
+    }
+  }
+
+  async deleteMessage(messageId: string, messageName: string) {
+    if (confirm(`Are you sure you want to delete the message from ${messageName}?`)) {
+      try {
+        await this.contactService.deleteMessage(messageId);
+        alert('Message deleted successfully');
+        this.loadContactMessages();
+      } catch (err) {
+        console.error('Error deleting message:', err);
+        alert('Failed to delete message');
+      }
+    }
+  }
+
+  getMessageStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'new': return 'status-badge-new';
+      case 'read': return 'status-badge-read';
+      case 'replied': return 'status-badge-replied';
+      default: return 'status-badge-default';
+    }
   }
 }
