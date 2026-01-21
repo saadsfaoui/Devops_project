@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, user, User, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider, signInWithPopup, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from '@angular/fire/auth';
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, user, User, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider, signInWithPopup, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, verifyBeforeUpdateEmail } from '@angular/fire/auth';
 import { Observable, firstValueFrom } from 'rxjs';
 import { FirestoreService } from './firestore.service';
 
@@ -179,6 +179,43 @@ export class AuthService {
     } catch (error) {
       console.error('Error checking profile:', error);
       return false;
+    }
+  }
+
+  // Update user email with verification
+  async updateUserEmail(newEmail: string) {
+    try {
+      const currentUser = this.auth.currentUser;
+      
+      if (!currentUser) {
+        throw new Error('No user is currently signed in');
+      }
+
+      // Prevent admin email from being changed
+      if (currentUser.email === 'admin@earthvibes.com') {
+        throw new Error('Admin email cannot be changed');
+      }
+
+      // Check if the new email is the same as the current one
+      if (currentUser.email === newEmail) {
+        throw new Error('New email is the same as the current email');
+      }
+
+      // Send verification email to the new address
+      // Firebase will automatically send a notification to the old email
+      const actionCodeSettings = {
+        url: window.location.origin + '/account?emailUpdated=true',
+        handleCodeInApp: true
+      };
+      
+      await verifyBeforeUpdateEmail(currentUser, newEmail, actionCodeSettings);
+      
+      // Update email in Firestore after verification
+      await this.firestoreService.updateDocument('users', currentUser.uid, {
+        email: newEmail
+      });
+    } catch (error) {
+      throw error;
     }
   }
 }

@@ -94,12 +94,18 @@
               id="email"
               type="email"
               [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
               name="email"
-              disabled
-              readonly
-              class="readonly-field"
+              required
+              [disabled]="!isEditing() || isAdmin()"
+              [readonly]="!isEditing() || isAdmin()"
+              [class.readonly-field]="isAdmin()"
             />
-            <small class="field-hint">Email cannot be changed</small>
+            @if (isAdmin()) {
+              <small class="field-hint">Admin email cannot be changed</small>
+            } @else if (isEditing()) {
+              <small class="field-hint">Changing your email will send verification to the new address and a notification to your old email</small>
+            }
           </div>
         </div>
 

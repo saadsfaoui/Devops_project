@@ -22,11 +22,13 @@ export class AccountComponent implements OnInit {
   birthDate = signal('');
   sexe = signal('');
   email = signal('');
+  originalEmail = signal('');
   errorMessage = signal('');
   successMessage = signal('');
   isLoading = signal(false);
   isEditing = signal(false);
   userId = signal<string | null>(null);
+  isAdmin = signal(false);
 
   async ngOnInit() {
     const user = this.authService.getCurrentUser();
@@ -37,6 +39,8 @@ export class AccountComponent implements OnInit {
 
     this.userId.set(user.uid);
     this.email.set(user.email || '');
+    this.originalEmail.set(user.email || '');
+    this.isAdmin.set(user.email === 'admin@earthvibes.com');
     await this.loadUserProfile();
   }
 
@@ -79,6 +83,7 @@ export class AccountComponent implements OnInit {
     this.isEditing.set(false);
     this.errorMessage.set('');
     this.successMessage.set('');
+    this.email.set(this.originalEmail());
     this.loadUserProfile();
   }
 
@@ -92,6 +97,13 @@ export class AccountComponent implements OnInit {
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.email())) {
+      this.errorMessage.set('Please enter a valid email address.');
+      return;
+    }
+
     const uid = this.userId();
     if (!uid) {
       this.errorMessage.set('User not authenticated.');
@@ -101,6 +113,10 @@ export class AccountComponent implements OnInit {
     this.isLoading.set(true);
 
     try {
+      // Check if email has changed
+      const emailChanged = this.email() !== this.originalEmail();
+
+      // Update profile information
       await this.authService.updateUserProfile(uid, {
         firstName: this.firstName(),
         lastName: this.lastName(),
@@ -108,13 +124,28 @@ export class AccountComponent implements OnInit {
         sexe: this.sexe()
       });
 
-      this.successMessage.set('Profile updated successfully!');
+      // Handle email change if needed
+      if (emailChanged) {
+        try {
+          await this.authService.updateUserEmail(this.email());
+          this.successMessage.set('Profile updated! Please check your new email to verify the change. A notification has been sent to your old email.');
+          this.originalEmail.set(this.email());
+        } catch (emailError: any) {
+          console.error('Email update error:', emailError);
+          const errorMsg = emailError.message || 'Failed to update email.';
+          this.errorMessage.set(`Profile updated but email change failed: ${errorMsg}`);
+          this.email.set(this.originalEmail()); // Reset to original
+        }
+      } else {
+        this.successMessage.set('Profile updated successfully!');
+      }
+
       this.isEditing.set(false);
       
-      // Clear success message after 3 seconds
+      // Clear success message after 5 seconds
       setTimeout(() => {
         this.successMessage.set('');
-      }, 3000);
+      }, 5000);
     } catch (error: any) {
       console.error('Update error:', error);
       this.errorMessage.set('Failed to update profile. Please try again.');
