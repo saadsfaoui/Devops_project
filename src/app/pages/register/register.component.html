@@ -6,6 +6,20 @@
       <div class="error-message">{{ errorMessage() }}</div>
     }
 
+    @if (successMessage()) {
+      <div class="success-message">{{ successMessage() }}</div>
+    }
+
+    @if (registrationComplete()) {
+      <div class="verification-info">
+        <p>📧 A verification email has been sent to <strong>{{ email() }}</strong></p>
+        <p>Please check your inbox and click the verification link to activate your account.</p>
+        <p class="note">Note: Check your spam folder if you don't see the email within a few minutes.</p>
+      </div>
+      <a routerLink="/login" class="back-to-login-btn">Go to Login</a>
+    }
+
+    @if (!registrationComplete()) {
     <form (ngSubmit)="onRegister()">
       <div class="form-group">
         <label for="firstName">First Name *</label>
@@ -110,5 +124,6 @@
     <p class="login-link">
       Already have an account? <a routerLink="/login">Login</a>
     </p>
+    }
   </div>
 </div>

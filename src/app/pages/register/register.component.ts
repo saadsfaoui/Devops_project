@@ -22,10 +22,13 @@ export class RegisterComponent {
   birthDate = signal('');
   sexe = signal('');
   errorMessage = signal('');
+  successMessage = signal('');
   isLoading = signal(false);
+  registrationComplete = signal(false);
 
   async onRegister() {
     this.errorMessage.set('');
+    this.successMessage.set('');
 
     // Validate required fields
     if (!this.firstName() || !this.lastName() || !this.birthDate() || !this.sexe()) {
@@ -56,11 +59,13 @@ export class RegisterComponent {
           sexe: this.sexe()
         }
       );
-      // Wait for auth state to be confirmed
-      await this.authService.waitForAuthState();
-      // Small additional delay to ensure navbar subscription processes the update
-      await new Promise(resolve => setTimeout(resolve, 50));
-      this.router.navigate(['/explore']);
+      
+      // Log the user out immediately after registration
+      await this.authService.logout();
+      
+      // Show success message instead of redirecting
+      this.registrationComplete.set(true);
+      this.successMessage.set('Registration successful! Please check your email to verify your account before signing in.');
     } catch (error: any) {
       this.errorMessage.set(this.getErrorMessage(error.code));
     } finally {

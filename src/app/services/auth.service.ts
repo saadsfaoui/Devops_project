@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, user, User, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider, signInWithPopup, onAuthStateChanged } from '@angular/fire/auth';
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, user, User, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider, signInWithPopup, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from '@angular/fire/auth';
 import { Observable, firstValueFrom } from 'rxjs';
 import { FirestoreService } from './firestore.service';
 
@@ -24,6 +24,15 @@ export class AuthService {
   async register(email: string, password: string, profile?: UserProfile) {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+      
+      // Send email verification with custom settings (skip for admin)
+      if (email !== 'admin@earthvibes.com') {
+        const actionCodeSettings = {
+          url: window.location.origin + '/login?verified=true',
+          handleCodeInApp: true
+        };
+        await sendEmailVerification(userCredential.user, actionCodeSettings);
+      }
       
       // Save user profile to Firestore if provided
       if (profile && userCredential.user) {
@@ -84,6 +93,43 @@ export class AuthService {
       throw error;
     }
   }
+  // Send verification email to current user
+  async resendVerificationEmail() {
+    try {
+      const currentUser = this.auth.currentUser;
+      if (currentUser && !currentUser.emailVerified) {
+        // Skip verification for admin
+        if (currentUser.email === 'admin@earthvibes.com') {
+          throw new Error('Admin account does not require verification');
+        }
+        const actionCodeSettings = {
+          url: window.location.origin + '/login?verified=true',
+          handleCodeInApp: true
+        };
+        await sendEmailVerification(currentUser, actionCodeSettings);
+      } else if (!currentUser) {
+        throw new Error('No user is currently signed in');
+      } else {
+        throw new Error('Email is already verified');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Send password reset email
+  async resetPassword(email: string) {
+    try {
+      const actionCodeSettings = {
+        url: window.location.origin + '/login',
+        handleCodeInApp: false
+      };
+      await sendPasswordResetEmail(this.auth, email, actionCodeSettings);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Sign out
   async logout() {
     try {

@@ -6,6 +6,25 @@
       <div class="error-message">{{ errorMessage() }}</div>
     }
 
+    @if (warningMessage()) {
+      <div class="warning-message">
+        {{ warningMessage() }}
+      </div>
+    }
+
+    @if (showVerificationWarning()) {
+      <div class="verification-box">
+        <p>📧 Didn't receive the email?</p>
+        <button 
+          type="button" 
+          class="resend-button" 
+          (click)="resendVerificationEmail()"
+          [disabled]="isResendingEmail()">
+          {{ isResendingEmail() ? 'Sending...' : 'Resend Verification Email' }}
+        </button>
+      </div>
+    }
+
     <form (ngSubmit)="onLogin()">
       <div class="form-group">
         <label for="email">Email</label>
@@ -33,10 +52,57 @@
         />
       </div>
 
+      <div class="forgot-password-link">
+        <a (click)="toggleForgotPassword()" class="link-button">Forgot Password?</a>
+      </div>
+
       <button type="submit" [disabled]="isLoading()">
         {{ isLoading() ? 'Loading...' : 'Login' }}
       </button>
     </form>
+
+    @if (showForgotPassword()) {
+      <div class="forgot-password-modal">
+        <div class="modal-content">
+          <h3>Reset Password</h3>
+          <p class="modal-description">Enter your email address and we'll send you a link to reset your password.</p>
+          
+          @if (resetSuccessMessage()) {
+            <div class="success-message">{{ resetSuccessMessage() }}</div>
+          }
+
+          <div class="form-group">
+            <label for="reset-email">Email</label>
+            <input
+              id="reset-email"
+              type="email"
+              [ngModel]="resetEmail()"
+              (ngModelChange)="resetEmail.set($event)"
+              name="resetEmail"
+              required
+              [disabled]="isResettingPassword()"
+            />
+          </div>
+
+          <div class="modal-buttons">
+            <button 
+              type="button" 
+              class="secondary-button"
+              (click)="toggleForgotPassword()"
+              [disabled]="isResettingPassword()">
+              Cancel
+            </button>
+            <button 
+              type="button" 
+              class="primary-button"
+              (click)="onPasswordReset()"
+              [disabled]="isResettingPassword()">
+              {{ isResettingPassword() ? 'Sending...' : 'Send Reset Link' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
 
     <div class="divider">
       <span>OR</span>
